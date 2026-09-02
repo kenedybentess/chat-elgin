@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Connect Elgin - Login</title>
+<title>Connect Elgin - Com Arquivos</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,sans-serif}
 body{background:#0f172a;color:#e2e8f0}
@@ -24,11 +24,14 @@ input:focus{border-color:#6366f1}
 .err{background:#7f1d1d33;border:1px solid #7f1d1d;color:#fecaca;padding:10px;border-radius:10px;font-size:13px;margin-top:12px;display:none}
 .ok{color:#22c55e;font-size:12px;margin-top:10px}
 #chatScreen{display:none;height:100vh;flex-direction:row}
-#msgInput{background:#ffffff !important;color:#111827 !important; -webkit-text-fill-color:#111827 !important; caret-color:#111827 !important;}
-#msgInput::placeholder{color:#9ca3af !important}
-#search{color:#ffffff !important}
 .side{width:280px;background:#111827;border-right:1px solid #1f2937;display:flex;flex-direction:column}
 .main{flex:1;display:flex;flex-direction:column;background:#f8fafc}
+#msgInput{background:#ffffff !important;color:#111827 !important;-webkit-text-fill-color:#111827 !important;caret-color:#111827 !important}
+#msgInput::placeholder{color:#9ca3af !important}
+.file-preview{max-width:200px;max-height:200px;border-radius:10px;margin-top:8px;border:1px solid #e2e8f0}
+.file-box{display:flex;align-items:center;gap:10px;background:#f1f5f9;padding:10px;border-radius:10px;margin-top:8px;border:1px solid #e2e8f0}
+.progress{height:4px;background:#e2e8f0;border-radius:2px;margin-top:6px;overflow:hidden}
+.progress-bar{height:100%;background:#6366f1;width:0%;transition:.2s}
 </style>
 </head>
 <body>
@@ -36,7 +39,6 @@ input:focus{border-color:#6366f1}
 <div class="card">
 <div class="logo"><div class="dot">C</div><div><b>Connect Elgin</b><div style="font-size:12px;color:#94a3b8">Entre ou crie sua conta</div></div></div>
 <div class="tabs"><div id="tabLogin" class="tab active" onclick="switchTab('login')">Entrar</div><div id="tabReg" class="tab" onclick="switchTab('reg')">Criar conta</div></div>
-
 <div id="formLogin">
 <label>Email</label><input id="l_email" placeholder="seu@elgin.com.br" type="email">
 <label>Senha</label><input id="l_senha" placeholder="Sua senha" type="password">
@@ -44,7 +46,6 @@ input:focus{border-color:#6366f1}
 <button id="btnLogin" class="btn">Entrar no Connect</button>
 <div style="text-align:center;margin-top:12px;font-size:13px;color:#94a3b8">Primeiro acesso? <span style="color:#6366f1;cursor:pointer" onclick="switchTab('reg')">Criar conta</span></div>
 </div>
-
 <div id="formReg" style="display:none">
 <label>Nome completo</label><input id="r_nome" placeholder="Ex: João Silva">
 <label>Cargo</label><input id="r_cargo" placeholder="Ex: Marketing" value="Colaborador">
@@ -64,12 +65,18 @@ input:focus{border-color:#6366f1}
 <div class="side" id="sidebar">
 <div style="padding:18px;border-bottom:1px solid #1f2937;display:flex;justify-content:space-between;align-items:center"><b style="color:white">Connect</b><button onclick="doLogout()" style="background:#1f2937;color:#94a3b8;border:none;padding:6px 10px;border-radius:8px;cursor:pointer">Sair</button></div>
 <div style="padding:12px"><div style="font-size:11px;color:#6b7280;letter-spacing:1px;margin-bottom:8px">CANAIS</div><div id="chanList"></div></div>
-<div style="padding:12px;flex:1;overflow:auto"><div style="font-size:11px;color:#6b7280;letter-spacing:1px;margin-bottom:8px">EQUIPE - SÓ FIREBASE</div><input id="search" placeholder="Buscar usuários..." style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid #1f2937;background:#0f172a;color:white;margin-bottom:10px"><div id="userList"><div style="color:#6b7280;font-size:13px">Carregando...</div></div><div id="conn" style="font-size:11px;color:#6b7280;margin-top:10px"></div></div>
+<div style="padding:12px;flex:1;overflow:auto"><div style="font-size:11px;color:#6b7280;letter-spacing:1px;margin-bottom:8px">EQUIPE - SÓ FIREBASE</div><input id="search" placeholder="Buscar usuários..." style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid #1f2937;background:#0f172a;color:white;margin-bottom:10px"><div id="userList"></div><div id="conn" style="font-size:11px;color:#6b7280;margin-top:10px"></div></div>
 </div>
 <div class="main">
 <div style="height:60px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;padding:0 18px;justify-content:space-between;background:white"><div><b id="chatTitle">#geral</b><div id="chatSub" style="font-size:12px;color:#64748b">Realtime</div></div></div>
 <div id="msgs" style="flex:1;overflow:auto;padding:18px;background:#f8fafc"></div>
-<form id="msgForm" style="padding:14px;background:white;border-top:1px solid #e2e8f0;display:flex;gap:10px"><input id="msgInput" placeholder="Digite uma mensagem..." style="flex:1;padding:12px 14px;border-radius:10px;border:1px solid #e2e8f0;background:#ffffff !important;color:#111827 !important"><button type="submit" style="padding:12px 18px;border-radius:10px;border:none;background:#6366f1;color:white;font-weight:700">Enviar</button></form>
+<div id="uploadInfo" style="padding:8px 14px;background:#eef2ff;border-top:1px solid #e2e8f0;display:none"><div id="uploadText" style="font-size:13px;color:#4338ca"></div><div class="progress"><div id="progressBar" class="progress-bar"></div></div></div>
+<form id="msgForm" style="padding:14px;background:white;border-top:1px solid #e2e8f0;display:flex;gap:10px;align-items:center">
+<button type="button" id="attachBtn" title="Enviar arquivo" style="width:44px;height:44px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;cursor:pointer;font-size:18px">📎</button>
+<input type="file" id="fileInput" style="display:none">
+<input id="msgInput" placeholder="Digite uma mensagem..." style="flex:1;padding:12px 14px;border-radius:10px;border:1px solid #e2e8f0;background:#ffffff;color:#111827">
+<button type="submit" style="padding:12px 18px;border-radius:10px;border:none;background:#6366f1;color:white;font-weight:700">Enviar</button>
+</form>
 </div>
 </div>
 
@@ -86,20 +93,20 @@ async function initFirebase(){
   await loadScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js");
   await loadScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js");
   await loadScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js");
+  await loadScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js");
   firebase.initializeApp(firebaseConfig);
   firebaseLoaded=true;
   document.getElementById('status').textContent='Firebase pronto - crie sua conta';
   document.getElementById('status').style.color='#22c55e';
   setupAuth();
  }catch(e){
-  document.getElementById('status').textContent='Firebase bloqueado no preview - baixe o arquivo e abra local. '+e.message;
+  document.getElementById('status').textContent='Firebase bloqueado no preview - baixe e abra local. '+e.message;
   document.getElementById('status').style.color='#f59e0b';
  }
 }
 let currentUser=null, currentChannel='geral', listeners={};
 function showErr(id,msg){const el=document.getElementById(id);el.style.display='block';el.textContent=msg}
 function hideErr(id){document.getElementById(id).style.display='none'}
-
 function setupAuth(){
  firebase.auth().onAuthStateChanged(async (user)=>{
   if(user){
@@ -115,7 +122,7 @@ function setupAuth(){
    }else{
      await firebase.database().ref('users/'+uid).update({online:true,lastSeen:firebase.database.ServerValue.TIMESTAMP});
    }
-   currentUser={id:uid,...data};
+   currentUser={id:uid,...data,nome:data.nome||data.email.split('@')[0]};
    localStorage.setItem('currentUser',JSON.stringify(currentUser));
    document.getElementById('loginScreen').style.display='none';
    document.getElementById('chatScreen').style.display='flex';
@@ -125,7 +132,6 @@ function setupAuth(){
    document.getElementById('chatScreen').style.display='none';
   }
  });
-
  document.getElementById('btnReg').onclick=async()=>{
   hideErr('r_err');
   const nome=document.getElementById('r_nome').value.trim();
@@ -140,16 +146,9 @@ function setupAuth(){
   if(!firebaseLoaded) return showErr('r_err','Firebase ainda carregando...');
   localStorage.setItem('pendingNome',nome);localStorage.setItem('pendingCargo',cargo);localStorage.setItem('pendingColor',selColor);
   document.getElementById('btnReg').textContent='Criando...';document.getElementById('btnReg').disabled=true;
-  try{
-   await firebase.auth().createUserWithEmailAndPassword(email,s);
-  }catch(e){
-   let msg=e.message;
-   if(e.code==='auth/email-already-in-use') msg='Este email ja esta cadastrado, faca login';
-   showErr('r_err',msg);
-  }
+  try{ await firebase.auth().createUserWithEmailAndPassword(email,s); }catch(e){ let msg=e.message; if(e.code==='auth/email-already-in-use') msg='Este email ja esta cadastrado, faca login'; showErr('r_err',msg); }
   document.getElementById('btnReg').textContent='Criar conta e entrar';document.getElementById('btnReg').disabled=false;
  };
-
  document.getElementById('btnLogin').onclick=async()=>{
   hideErr('l_err');
   const email=document.getElementById('l_email').value.trim();
@@ -157,17 +156,10 @@ function setupAuth(){
   if(!email||!s) return showErr('l_err','Preencha email e senha');
   if(!firebaseLoaded) return showErr('l_err','Firebase ainda carregando...');
   document.getElementById('btnLogin').textContent='Entrando...';document.getElementById('btnLogin').disabled=true;
-  try{
-   await firebase.auth().signInWithEmailAndPassword(email,s);
-  }catch(e){
-   let msg=e.message;
-   if(e.code==='auth/wrong-password' || e.code==='auth/invalid-credential') msg='Senha incorreta ou usuario nao existe';
-   showErr('l_err',msg);
-  }
+  try{ await firebase.auth().signInWithEmailAndPassword(email,s); }catch(e){ let msg=e.message; if(e.code==='auth/wrong-password' || e.code==='auth/invalid-credential') msg='Senha incorreta'; showErr('l_err',msg); }
   document.getElementById('btnLogin').textContent='Entrar no Connect';document.getElementById('btnLogin').disabled=false;
  };
 }
-
 function initChat(){
  const chans=[{id:'geral',label:'# geral'},{id:'projetos',label:'# projetos'},{id:'marketing',label:'# marketing'},{id:'suporte',label:'# suporte'}];
  const cl=document.getElementById('chanList');cl.innerHTML='';
@@ -175,26 +167,29 @@ function initChat(){
   const d=document.createElement('div');d.textContent=ch.label;d.style.cssText='padding:8px 10px;border-radius:8px;cursor:pointer;color:#9ca3af';d.onclick=()=>selectChannel(ch.id,ch.label); if(ch.id===currentChannel) d.style.background='#1f2937',d.style.color='white';cl.appendChild(d);
  });
  firebase.database().ref('users').on('value',snap=>{
-  const val=snap.val()||{}; const list=Object.values(val);
+  const val=snap.val()||{}; const list=Object.values(val).filter(u=>u && u.id);
   window.allUsers=list;
   renderUsers();
-  document.getElementById('conn').textContent=list.length+' usuarios registrados - '+list.filter(u=>u.online).length+' online';
+  document.getElementById('conn').textContent=list.length+' usuarios - '+list.filter(u=>u.online).length+' online';
  });
  firebase.database().ref('.info/connected').on('value',s=>{document.getElementById('chatSub').textContent=s.val()?'● Realtime Conectado':'Desconectado';document.getElementById('chatSub').style.color=s.val()?'#22c55e':'#ef4444'});
  selectChannel('geral','# geral');
  document.getElementById('search').oninput=(e)=>renderUsers(e.target.value);
  document.getElementById('msgForm').onsubmit=(e)=>{e.preventDefault();sendMsg()};
+ document.getElementById('attachBtn').onclick=()=>document.getElementById('fileInput').click();
+ document.getElementById('fileInput').onchange=(e)=>{const f=e.target.files[0]; if(f) uploadFile(f); e.target.value='';};
 }
 function renderUsers(filter=''){
  const cont=document.getElementById('userList'); if(!window.allUsers){cont.innerHTML='<div style=color:#6b7280>Carregando...</div>';return}
  let list=window.allUsers.filter(u=>u.id!==currentUser.id);
- if(filter) {const f=filter.toLowerCase(); list=list.filter(u=> (u.nome+' '+u.cargo+' '+u.email).toLowerCase().includes(f)) }
- if(list.length===0){cont.innerHTML='<div style=color:#6b7280;font-size:13px;padding:8px>Nenhum usuario no Firebase ainda.</div>';return}
+ if(filter){const f=filter.toLowerCase(); list=list.filter(u=> ((u.nome||'')+' '+(u.cargo||'')+' '+(u.email||'')).toLowerCase().includes(f))}
+ if(list.length===0){cont.innerHTML='<div style=color:#6b7280;font-size:13px;padding:8px>Nenhum usuario.</div>';return}
  cont.innerHTML='';
  list.sort((a,b)=>(b.online?1:0)-(a.online?1:0)).forEach(u=>{
+  const nome=u.nome|| (u.email?u.email.split('@')[0]:'Usuario'); const cargo=u.cargo||u.email||'Sem cargo';
   const d=document.createElement('div');d.style.cssText='display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;cursor:pointer;color:#d1d5db';
   d.onmouseenter=()=>d.style.background='#1f2937';d.onmouseleave=()=>d.style.background='transparent';
-  d.innerHTML=`<div style="width:32px;height:32px;border-radius:50%;background:${u.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;font-size:12px">${(u.nome||'U')[0].toUpperCase()}</div><div style="flex:1"><div style="font-size:13px;font-weight:600">${u.nome}</div><div style="font-size:11px;color:#6b7280">${u.cargo} - ${u.online?'online':'offline'}</div></div><div style="width:8px;height:8px;border-radius:50%;background:${u.online?'#22c55e':'#4b5563'}"></div>`;
+  d.innerHTML=`<div style="width:32px;height:32px;border-radius:50%;background:${u.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;font-size:12px">${nome[0].toUpperCase()}</div><div style="flex:1"><div style="font-size:13px;font-weight:600">${nome}</div><div style="font-size:11px;color:#6b7280">${cargo} - ${u.online?'online':'offline'}</div></div><div style="width:8px;height:8px;border-radius:50%;background:${u.online?'#22c55e':'#4b5563'}"></div>`;
   d.onclick=()=>selectUser(u);
   cont.appendChild(d);
  });
@@ -205,27 +200,57 @@ function selectChannel(id,label){
  document.getElementById('chatTitle').textContent=label;
  document.getElementById('msgs').innerHTML='';
  document.querySelectorAll('#chanList div').forEach(el=>{el.style.background='transparent';el.style.color='#9ca3af'; if(el.textContent===label){el.style.background='#1f2937';el.style.color='white'}});
- const ref=firebase.database().ref('channels/'+id+'/messages').limitToLast(100);
+ const ref=firebase.database().ref('channels/'+id+'/messages').limitToLast(150);
  listeners.msg=ref;
  ref.on('child_added',snap=>{addMsg(snap.val())});
 }
 function selectUser(u){
  const ids=[currentUser.id,u.id].sort(); const dmId='dm_'+ids.join('_');
- selectChannel(dmId,'Conversando com '+u.nome);
- document.getElementById('chatTitle').textContent='💬 '+u.nome+' • '+u.cargo;
+ const nome=u.nome||u.email;
+ selectChannel(dmId,'Conversando com '+nome);
+ document.getElementById('chatTitle').textContent='💬 '+nome+' • '+(u.cargo||'');
 }
 function addMsg(m){
+ if(!m) return;
  const box=document.getElementById('msgs');
- const div=document.createElement('div');div.style.cssText='display:flex;gap:10px;margin-bottom:14px';
+ const div=document.createElement('div');div.style.cssText='display:flex;gap:10px;margin-bottom:16px';
  const isMe=m.userId===currentUser.id;
- div.innerHTML=`<div style="width:36px;height:36px;border-radius:50%;background:${m.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;flex-shrink:0">${(m.user||'U')[0]}</div><div><div style="display:flex;gap:8px;align-items:center"><b style="font-size:14px;color:#111827">${m.user}</b><span style="font-size:11px;color:#64748b">${new Date(m.timestamp).toLocaleTimeString()}</span></div><div style="margin-top:4px;background:${isMe?'#eef2ff':'white'};border:1px solid #e2e8f0;padding:10px 12px;border-radius:12px;font-size:14px;color:#1e293b;max-width:520px;word-break:break-word">${m.text}</div></div>`;
+ const nome=m.user||m.nome||'Usuario';
+ let content = '';
+ if(m.text) content+=`<div style="margin-top:4px;background:${isMe?'#eef2ff':'white'};border:1px solid #e2e8f0;padding:10px 12px;border-radius:12px;font-size:14px;color:#1e293b;max-width:520px;word-break:break-word">${escapeHtml(m.text)}</div>`;
+ if(m.fileUrl){
+   const isImage = m.fileType && m.fileType.startsWith('image/');
+   if(isImage) content+=`<a href="${m.fileUrl}" target="_blank"><img src="${m.fileUrl}" class="file-preview" loading="lazy"></a><div style="font-size:12px;color:#64748b;margin-top:4px">${m.fileName} • <a href="${m.fileUrl}" target="_blank" download style="color:#6366f1">Baixar</a></div>`;
+   else content+=`<div class="file-box"><div style="font-size:24px">📄</div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#111827">${m.fileName}</div><div style="font-size:11px;color:#64748b">${m.fileType||''} • ${(m.fileSize? (m.fileSize/1024).toFixed(1)+' KB':'')}</div></div><a href="${m.fileUrl}" target="_blank" download style="padding:6px 12px;background:#6366f1;color:white;border-radius:8px;text-decoration:none;font-size:12px">Baixar</a></div>`;
+ }
+ div.innerHTML=`<div style="width:36px;height:36px;border-radius:50%;background:${m.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;flex-shrink:0">${nome[0].toUpperCase()}</div><div><div style="display:flex;gap:8px;align-items:center"><b style="font-size:14px;color:#111827">${nome}</b><span style="font-size:11px;color:#64748b">${m.timestamp?new Date(m.timestamp).toLocaleTimeString():''}</span></div>${content}</div>`;
  box.appendChild(div); box.scrollTop=box.scrollHeight;
 }
+function escapeHtml(t){return t.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function sendMsg(){
  const input=document.getElementById('msgInput');const text=input.value.trim(); if(!text) return;
  const ref=firebase.database().ref('channels/'+currentChannel+'/messages').push();
  ref.set({id:ref.key,text,user:currentUser.nome,userId:currentUser.id,cargo:currentUser.cargo,avatarColor:currentUser.avatarColor,timestamp:Date.now()});
  input.value='';input.focus();
+}
+async function uploadFile(file){
+ if(file.size>15*1024*1024) return alert('Arquivo muito grande (max 15MB)');
+ const info=document.getElementById('uploadInfo'); const txt=document.getElementById('uploadText'); const bar=document.getElementById('progressBar');
+ info.style.display='block'; txt.textContent='Enviando '+file.name+'...'; bar.style.width='0%';
+ try{
+  const storageRef=firebase.storage().ref('chat_files/'+currentChannel+'/'+Date.now()+'_'+file.name);
+  const task=storageRef.put(file);
+  task.on('state_changed', snap=>{
+   const pct=(snap.bytesTransferred/snap.totalBytes*100).toFixed(0); bar.style.width=pct+'%'; txt.textContent='Enviando '+file.name+' - '+pct+'%';
+  }, err=>{
+   info.style.display='none'; alert('Erro no upload: '+err.message+' - Ative o Storage no Firebase Console');
+  }, async ()=>{
+   const url=await task.snapshot.ref.getDownloadURL();
+   const ref=firebase.database().ref('channels/'+currentChannel+'/messages').push();
+   await ref.set({id:ref.key,text:'',fileUrl:url,fileName:file.name,fileType:file.type,fileSize:file.size,user:currentUser.nome,userId:currentUser.id,avatarColor:currentUser.avatarColor,timestamp:Date.now()});
+   info.style.display='none';
+  });
+ }catch(e){ info.style.display='none'; alert('Erro: '+e.message+' - Ative Storage em console.firebase.google.com > Storage > Começar'); }
 }
 async function doLogout(){
  if(currentUser) await firebase.database().ref('users/'+currentUser.id).update({online:false});
