@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Connect Elgin - Com Excluir</title>
+<title>Connect Elgin - Final</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,sans-serif}
 body{background:#0f172a;color:#e2e8f0}
@@ -69,7 +69,7 @@ input:focus{border-color:#6366f1}
 <div style="padding:12px;flex:1;overflow:auto"><div style="font-size:11px;color:#6b7280;letter-spacing:1px;margin-bottom:8px">EQUIPE - SÓ FIREBASE</div><input id="search" placeholder="Buscar usuários..." style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid #1f2937;background:#0f172a;color:white;margin-bottom:10px"><div id="userList"></div><div id="conn" style="font-size:11px;color:#6b7280;margin-top:10px"></div></div>
 </div>
 <div class="main">
-<div style="height:60px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;padding:0 18px;justify-content:space-between;background:white"><div><b id="chatTitle">#geral</b><div id="chatSub" style="font-size:12px;color:#64748b">Realtime</div></div></div>
+<div style="height:60px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;padding:0 18px;justify-content:space-between;background:white"><div><b id="chatTitle">#geral</b><div id="chatSub" style="font-size:12px;color:#64748b">Realtime - só mensagens do canal</div></div><button onclick="selectChannel('geral','# geral')" style="padding:6px 12px;border-radius:8px;border:1px solid #e2e8f0;background:white;color:#6366f1;cursor:pointer;font-size:12px">Voltar para #geral</button></div>
 <div id="msgs" style="flex:1;overflow:auto;padding:18px;background:#f8fafc"></div>
 <div id="uploadInfo" style="padding:8px 14px;background:#eef2ff;border-top:1px solid #e2e8f0;display:none"><div id="uploadText" style="font-size:13px;color:#4338ca"></div><div style="height:4px;background:#e2e8f0;border-radius:2px;margin-top:6px;overflow:hidden"><div id="progressBar" style="height:100%;background:#6366f1;width:0%;transition:.2s"></div></div></div>
 <form id="msgForm" style="padding:14px;background:white;border-top:1px solid #e2e8f0;display:flex;gap:10px;align-items:center"><button type="button" id="attachBtn" title="Anexar arquivo" style="width:44px;height:44px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;cursor:pointer;font-size:20px;flex-shrink:0">📎</button><input type="file" id="fileInput" style="display:none"><input id="msgInput" placeholder="Digite uma mensagem..." style="flex:1;padding:12px 14px;border-radius:10px;border:1px solid #e2e8f0;background:#ffffff;color:#111827"><button type="submit" style="padding:12px 18px;border-radius:10px;border:none;background:#6366f1;color:white;font-weight:700">Enviar</button></form>
@@ -96,11 +96,11 @@ async function initFirebase(){
   document.getElementById('status').style.color='#22c55e';
   setupAuth();
  }catch(e){
-  document.getElementById('status').textContent='Baixe o arquivo e abra local: '+e.message;
+  document.getElementById('status').textContent='Baixe e abra local: '+e.message;
   document.getElementById('status').style.color='#f59e0b';
  }
 }
-let currentUser=null, currentChannel='geral', listeners={}, messagesCache={};
+let currentUser=null, currentChannel='geral', currentChannelType='channel', listeners={}, messagesCache={};
 function showErr(id,msg){const el=document.getElementById(id);el.style.display='block';el.textContent=msg}
 function hideErr(id){document.getElementById(id).style.display='none'}
 function setupAuth(){
@@ -159,7 +159,7 @@ function initChat(){
  const chans=[{id:'geral',label:'# geral'},{id:'projetos',label:'# projetos'},{id:'marketing',label:'# marketing'},{id:'suporte',label:'# suporte'}];
  const cl=document.getElementById('chanList');cl.innerHTML='';
  chans.forEach(ch=>{
-  const d=document.createElement('div');d.textContent=ch.label;d.style.cssText='padding:8px 10px;border-radius:8px;cursor:pointer;color:#9ca3af';d.onclick=()=>selectChannel(ch.id,ch.label); if(ch.id===currentChannel) d.style.background='#1f2937',d.style.color='white';cl.appendChild(d);
+  const d=document.createElement('div');d.textContent=ch.label;d.style.cssText='padding:8px 10px;border-radius:8px;cursor:pointer;color:#9ca3af';d.onclick=()=>selectChannel(ch.id,ch.label,'channel'); if(ch.id===currentChannel) d.style.background='#1f2937',d.style.color='white';cl.appendChild(d);
  });
  firebase.database().ref('users').on('value',snap=>{
   const val=snap.val()||{}; const list=Object.values(val).filter(u=>u && u.id);
@@ -167,8 +167,8 @@ function initChat(){
   renderUsers();
   document.getElementById('conn').textContent=list.length+' usuarios - '+list.filter(u=>u.online).length+' online';
  });
- firebase.database().ref('.info/connected').on('value',s=>{document.getElementById('chatSub').textContent=s.val()?'● Realtime Conectado':'Desconectado';document.getElementById('chatSub').style.color=s.val()?'#22c55e':'#ef4444'});
- selectChannel('geral','# geral');
+ firebase.database().ref('.info/connected').on('value',s=>{document.getElementById('chatSub').textContent=s.val() ? (currentChannelType==='dm' ? '💬 Conversa privada' : '● #GERAL - só mensagens do canal') : 'Desconectado'; document.getElementById('chatSub').style.color=s.val()?'#22c55e':'#ef4444'});
+ selectChannel('geral','# geral','channel');
  document.getElementById('search').oninput=(e)=>renderUsers(e.target.value);
  document.getElementById('msgForm').onsubmit=(e)=>{e.preventDefault();sendMsg()};
  document.getElementById('attachBtn').onclick=()=>document.getElementById('fileInput').click();
@@ -189,15 +189,23 @@ function renderUsers(filter=''){
   cont.appendChild(d);
  });
 }
-function selectChannel(id,label){
+function selectChannel(id,label,type='channel'){
  if(listeners.msg){ listeners.msg.off('child_added'); listeners.msg.off('child_removed'); }
  currentChannel=id;
+ currentChannelType=type;
  messagesCache={};
  document.getElementById('chatTitle').textContent=label;
+ document.getElementById('chatSub').textContent= type==='dm' ? '💬 Conversa privada - não aparece no #geral' : '● #GERAL - só mensagens do canal';
+ document.getElementById('chatSub').style.color= type==='dm' ? '#6366f1' : '#22c55e';
  document.getElementById('msgs').innerHTML='';
  document.querySelectorAll('#chanList div').forEach(el=>{el.style.background='transparent';el.style.color='#9ca3af'; if(el.textContent===label){el.style.background='#1f2937';el.style.color='white'}});
- const ref=firebase.database().ref('channels/'+id+'/messages').limitToLast(150);
+ // IMPORTANTE: separa storage
+ // canal -> channels/{id}/messages
+ // dm -> dms/{dmId}/messages  (ANTES estava em channels/dm_... agora vai para dms/)
+ let path = type==='dm' ? 'dms/'+id+'/messages' : 'channels/'+id+'/messages';
+ const ref=firebase.database().ref(path).limitToLast(150);
  listeners.msg=ref;
+ listeners.path=path;
  ref.on('child_added',snap=>{
    const m=snap.val(); if(!m) return; messagesCache[snap.key]=m; addMsg(m, snap.key);
  });
@@ -207,10 +215,10 @@ function selectChannel(id,label){
  });
 }
 function selectUser(u){
- const ids=[currentUser.id,u.id].sort(); const dmId='dm_'+ids.join('_');
+ const ids=[currentUser.id,u.id].sort(); const dmId=ids.join('_');
  const nome=u.nome||u.email;
- selectChannel(dmId,'Conversando com '+nome);
- document.getElementById('chatTitle').textContent='💬 '+nome;
+ selectChannel(dmId,'💬 '+nome, 'dm');
+ document.getElementById('chatTitle').textContent='💬 '+nome+' • '+(u.cargo||'');
 }
 function addMsg(m, key){
  if(!m) return;
@@ -227,14 +235,15 @@ function addMsg(m, key){
    if(isImage) content+=`<a href="${m.fileUrl}" target="_blank"><img src="${m.fileUrl}" style="max-width:200px;max-height:200px;border-radius:10px;margin-top:8px;border:1px solid #e2e8f0" loading="lazy"></a><div style="font-size:12px;color:#64748b;margin-top:4px">${m.fileName} • <a href="${m.fileUrl}" target="_blank" download style="color:#6366f1">Baixar</a></div>`;
    else content+=`<div style="display:flex;align-items:center;gap:10px;background:#f1f5f9;padding:10px;border-radius:10px;margin-top:8px;border:1px solid #e2e8f0"><div style="font-size:24px">📄</div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#111827">${m.fileName||'arquivo'}</div><div style="font-size:11px;color:#64748b">${m.fileType||''}</div></div><a href="${m.fileUrl}" target="_blank" download style="padding:6px 12px;background:#6366f1;color:white;border-radius:8px;text-decoration:none;font-size:12px">Baixar</a></div>`;
  }
- const delBtn = isMe ? `<div class="msg-actions"><button class="del-btn" onclick="deleteMsg('${msgKey}')" title="Excluir mensagem">🗑️ Excluir</button></div>` : '';
+ const delBtn = isMe ? `<div class="msg-actions"><button class="del-btn" onclick="deleteMsg('${msgKey}')" title="Excluir">🗑️ Excluir</button></div>` : '';
  wrap.innerHTML=`<div style="width:36px;height:36px;border-radius:50%;background:${m.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;flex-shrink:0">${nome[0].toUpperCase()}</div><div><div style="display:flex;gap:8px;align-items:center"><b style="font-size:14px;color:#111827">${escapeHtml(nome)}</b><span style="font-size:11px;color:#64748b">${m.timestamp?new Date(m.timestamp).toLocaleTimeString():''}</span>${delBtn}</div>${content}</div>`;
  box.appendChild(wrap); box.scrollTop=box.scrollHeight;
 }
 function escapeHtml(t){return (t||'').toString().replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function sendMsg(){
  const input=document.getElementById('msgInput');const text=input.value.trim(); if(!text) return;
- const ref=firebase.database().ref('channels/'+currentChannel+'/messages').push();
+ let path = currentChannelType==='dm' ? 'dms/'+currentChannel+'/messages' : 'channels/'+currentChannel+'/messages';
+ const ref=firebase.database().ref(path).push();
  ref.set({id:ref.key,text,user:currentUser.nome,userId:currentUser.id,cargo:currentUser.cargo,avatarColor:currentUser.avatarColor,timestamp:Date.now()});
  input.value='';input.focus();
 }
@@ -242,13 +251,13 @@ async function uploadFile(file){
  if(file.size>15*1024*1024) return alert('Arquivo muito grande (max 15MB)');
  const info=document.getElementById('uploadInfo'); const txt=document.getElementById('uploadText'); const bar=document.getElementById('progressBar');
  info.style.display='block'; txt.textContent='Enviando '+file.name+'...'; bar.style.width='15%';
- // modo direto base64 para <3MB
  if(file.size < 3*1024*1024){
    const reader=new FileReader();
    reader.onload=async (e)=>{
      try{
        bar.style.width='70%';
-       const ref=firebase.database().ref('channels/'+currentChannel+'/messages').push();
+       let path = currentChannelType==='dm' ? 'dms/'+currentChannel+'/messages' : 'channels/'+currentChannel+'/messages';
+       const ref=firebase.database().ref(path).push();
        await ref.set({id:ref.key,text:'',fileUrl:e.target.result,fileName:file.name,fileType:file.type,fileSize:file.size,user:currentUser.nome,userId:currentUser.id,avatarColor:currentUser.avatarColor,timestamp:Date.now(),isBase64:true});
        bar.style.width='100%'; setTimeout(()=>info.style.display='none',800);
      }catch(err){ info.style.display='none'; alert('Erro: '+err.message); }
@@ -256,28 +265,28 @@ async function uploadFile(file){
    reader.readAsDataURL(file);
    return;
  }
- // tenta storage para maiores
  try{
   const storageRef=firebase.storage().ref('chat_files/'+currentChannel+'/'+Date.now()+'_'+file.name);
   const task=storageRef.put(file);
   task.on('state_changed', snap=>{
    const pct=(snap.bytesTransferred/snap.totalBytes*100).toFixed(0); bar.style.width=pct+'%'; txt.textContent='Enviando '+file.name+' - '+pct+'%';
   }, err=>{
-   info.style.display='none'; alert('Erro Storage: '+err.message+' - Ative em console.firebase.google.com > Storage > Começar');
+   info.style.display='none'; alert('Erro Storage: '+err.message);
   }, async ()=>{
    const url=await task.snapshot.ref.getDownloadURL();
-   const ref=firebase.database().ref('channels/'+currentChannel+'/messages').push();
+   let path = currentChannelType==='dm' ? 'dms/'+currentChannel+'/messages' : 'channels/'+currentChannel+'/messages';
+   const ref=firebase.database().ref(path).push();
    await ref.set({id:ref.key,text:'',fileUrl:url,fileName:file.name,fileType:file.type,fileSize:file.size,user:currentUser.nome,userId:currentUser.id,avatarColor:currentUser.avatarColor,timestamp:Date.now()});
    setTimeout(()=>info.style.display='none',600);
   });
  }catch(e){ info.style.display='none'; alert('Erro: '+e.message); }
 }
 function deleteMsg(msgKey){
- if(!confirm('Excluir esta mensagem? Ela será apagada para todos.')) return;
- // só permite excluir própria mensagem (verifica cache)
+ if(!confirm('Excluir esta mensagem? Será apagada para todos.')) return;
  const m=messagesCache[msgKey];
- if(m && m.userId !== currentUser.id){ alert('Você só pode excluir suas próprias mensagens'); return; }
- firebase.database().ref('channels/'+currentChannel+'/messages/'+msgKey).remove().then(()=>{
+ if(m && m.userId !== currentUser.id){ alert('Só pode excluir suas próprias mensagens'); return; }
+ let path = currentChannelType==='dm' ? 'dms/'+currentChannel+'/messages/'+msgKey : 'channels/'+currentChannel+'/messages/'+msgKey;
+ firebase.database().ref(path).remove().then(()=>{
    const el=document.getElementById('msg-'+msgKey); if(el) el.remove();
  }).catch(err=>alert('Erro ao excluir: '+err.message));
 }
