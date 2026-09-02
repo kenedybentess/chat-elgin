@@ -15,8 +15,6 @@ body{background:#0f172a;color:#e2e8f0}
 .tab.active{background:#334155;color:white}
 label{font-size:13px;color:#94a3b8;margin:12px 0 6px;display:block}
 input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid #334155;background:#0f172a;color:white;outline:none}
-#msgInput{color:#111827 !important; background:#ffffff !important;}
-#search{color:white !important;}
 input:focus{border-color:#6366f1}
 .btn{width:100%;padding:13px;border-radius:10px;border:none;background:#6366f1;color:white;font-weight:700;cursor:pointer;margin-top:18px}
 .btn:disabled{opacity:.6}
@@ -26,6 +24,9 @@ input:focus{border-color:#6366f1}
 .err{background:#7f1d1d33;border:1px solid #7f1d1d;color:#fecaca;padding:10px;border-radius:10px;font-size:13px;margin-top:12px;display:none}
 .ok{color:#22c55e;font-size:12px;margin-top:10px}
 #chatScreen{display:none;height:100vh;flex-direction:row}
+#msgInput{background:#ffffff !important;color:#111827 !important; -webkit-text-fill-color:#111827 !important; caret-color:#111827 !important;}
+#msgInput::placeholder{color:#9ca3af !important}
+#search{color:#ffffff !important}
 .side{width:280px;background:#111827;border-right:1px solid #1f2937;display:flex;flex-direction:column}
 .main{flex:1;display:flex;flex-direction:column;background:#f8fafc}
 </style>
@@ -68,7 +69,7 @@ input:focus{border-color:#6366f1}
 <div class="main">
 <div style="height:60px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;padding:0 18px;justify-content:space-between;background:white"><div><b id="chatTitle">#geral</b><div id="chatSub" style="font-size:12px;color:#64748b">Realtime</div></div></div>
 <div id="msgs" style="flex:1;overflow:auto;padding:18px;background:#f8fafc"></div>
-<form id="msgForm" style="padding:14px;background:white;border-top:1px solid #e2e8f0;display:flex;gap:10px"><input id="msgInput" placeholder="Digite uma mensagem..." style="flex:1;padding:12px 14px;border-radius:10px;border:1px solid #e2e8f0;background:#ffffff;color:#111827"><button type="submit" style="padding:12px 18px;border-radius:10px;border:none;background:#6366f1;color:white;font-weight:700">Enviar</button></form>
+<form id="msgForm" style="padding:14px;background:white;border-top:1px solid #e2e8f0;display:flex;gap:10px"><input id="msgInput" placeholder="Digite uma mensagem..." style="flex:1;padding:12px 14px;border-radius:10px;border:1px solid #e2e8f0;background:#ffffff !important;color:#111827 !important"><button type="submit" style="padding:12px 18px;border-radius:10px;border:none;background:#6366f1;color:white;font-weight:700">Enviar</button></form>
 </div>
 </div>
 
@@ -186,14 +187,14 @@ function initChat(){
 }
 function renderUsers(filter=''){
  const cont=document.getElementById('userList'); if(!window.allUsers){cont.innerHTML='<div style=color:#6b7280>Carregando...</div>';return}
- let list=window.allUsers.filter(u=>u && u.id && u.id!==currentUser.id && (u.nome || u.email));
+ let list=window.allUsers.filter(u=>u.id!==currentUser.id);
  if(filter) {const f=filter.toLowerCase(); list=list.filter(u=> (u.nome+' '+u.cargo+' '+u.email).toLowerCase().includes(f)) }
  if(list.length===0){cont.innerHTML='<div style=color:#6b7280;font-size:13px;padding:8px>Nenhum usuario no Firebase ainda.</div>';return}
  cont.innerHTML='';
  list.sort((a,b)=>(b.online?1:0)-(a.online?1:0)).forEach(u=>{
   const d=document.createElement('div');d.style.cssText='display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;cursor:pointer;color:#d1d5db';
   d.onmouseenter=()=>d.style.background='#1f2937';d.onmouseleave=()=>d.style.background='transparent';
-  const nome = u.nome || (u.email ? u.email.split('@')[0] : 'Usuario'); const cargo = u.cargo || u.email || 'Sem cargo'; d.innerHTML=`<div style="width:32px;height:32px;border-radius:50%;background:${u.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;font-size:12px">${nome[0].toUpperCase()}</div><div style="flex:1"><div style="font-size:13px;font-weight:600">${nome}</div><div style="font-size:11px;color:#6b7280">${cargo} - ${u.online?'online':'offline'}</div></div><div style="width:8px;height:8px;border-radius:50%;background:${u.online?'#22c55e':'#4b5563'}"></div>`;
+  d.innerHTML=`<div style="width:32px;height:32px;border-radius:50%;background:${u.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;font-size:12px">${(u.nome||'U')[0].toUpperCase()}</div><div style="flex:1"><div style="font-size:13px;font-weight:600">${u.nome}</div><div style="font-size:11px;color:#6b7280">${u.cargo} - ${u.online?'online':'offline'}</div></div><div style="width:8px;height:8px;border-radius:50%;background:${u.online?'#22c55e':'#4b5563'}"></div>`;
   d.onclick=()=>selectUser(u);
   cont.appendChild(d);
  });
@@ -217,7 +218,7 @@ function addMsg(m){
  const box=document.getElementById('msgs');
  const div=document.createElement('div');div.style.cssText='display:flex;gap:10px;margin-bottom:14px';
  const isMe=m.userId===currentUser.id;
- const mNome = m.user || m.nome || 'Usuario'; div.innerHTML=`<div style="width:36px;height:36px;border-radius:50%;background:${m.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;flex-shrink:0">${mNome[0]}</div><div><div style="display:flex;gap:8px;align-items:center"><b style="font-size:14px;color:#111827">${mNome}</b><span style="font-size:11px;color:#64748b">${new Date(m.timestamp).toLocaleTimeString()}</span></div><div style="margin-top:4px;background:${isMe?'#eef2ff':'white'};border:1px solid #e2e8f0;padding:10px 12px;border-radius:12px;font-size:14px;color:#1e293b;max-width:520px;word-break:break-word">${m.text}</div></div>`;
+ div.innerHTML=`<div style="width:36px;height:36px;border-radius:50%;background:${m.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;flex-shrink:0">${(m.user||'U')[0]}</div><div><div style="display:flex;gap:8px;align-items:center"><b style="font-size:14px;color:#111827">${m.user}</b><span style="font-size:11px;color:#64748b">${new Date(m.timestamp).toLocaleTimeString()}</span></div><div style="margin-top:4px;background:${isMe?'#eef2ff':'white'};border:1px solid #e2e8f0;padding:10px 12px;border-radius:12px;font-size:14px;color:#1e293b;max-width:520px;word-break:break-word">${m.text}</div></div>`;
  box.appendChild(div); box.scrollTop=box.scrollHeight;
 }
 function sendMsg(){
