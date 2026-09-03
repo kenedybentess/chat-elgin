@@ -4,10 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#111827">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiQ29ubmVjdCBFbGdpbiIsInNob3J0X25hbWUiOiJFbGdpbiIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMTExODI3IiwidGhlbWVfY29sb3IiOiIjMTExODI3In0=">
-<title>Connect Elgin - PC e Celular</title>
+<title>Connect Elgin - Final com Presença</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
 body{background:#0f172a;color:#e2e8f0;overscroll-behavior:none}
@@ -47,22 +44,23 @@ input:focus{border-color:#6366f1}
 .read-seen-blue{color:#0ea5e9;font-weight:700}
 .mobile-header{display:none}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:15}
+.status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;border:2px solid #111827}
+.status-online{background:#22c55e;box-shadow:0 0 0 2px #22c55e33}
+.status-offline{background:#4b5563}
+.status-away{background:#f59e0b}
 @media(max-width:768px){
   .side{position:fixed;inset:0 30% 0 0;transform:translateX(-100%);}
   .side.open{transform:translateX(0);}
   .overlay.show{display:block}
   .mobile-header{display:flex;align-items:center;gap:10px}
   #chatTitle{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60vw}
-  #msgForm{padding:10px !important;gap:8px !important}
-  #msgInput{padding:10px 12px !important}
-  .main{width:100%}
 }
 </style>
 </head>
 <body>
 <div id="loginScreen">
 <div class="card">
-<div class="logo"><div class="dot">C</div><div><b>Connect Elgin</b><div style="font-size:12px;color:#94a3b8">PC e Celular - Mesmo login</div></div></div>
+<div class="logo"><div class="dot">C</div><div><b>Connect Elgin</b><div style="font-size:12px;color:#94a3b8">PC e Celular - Presença real</div></div></div>
 <div class="tabs"><div id="tabLogin" class="tab active" onclick="switchTab('login')">Entrar</div><div id="tabReg" class="tab" onclick="switchTab('reg')">Criar conta</div></div>
 <div id="formLogin">
 <label>Email</label><input id="l_email" placeholder="seu@elgin.com.br" type="email" autocomplete="email">
@@ -70,7 +68,6 @@ input:focus{border-color:#6366f1}
 <div id="l_err" class="err"></div>
 <button id="btnLogin" class="btn">Entrar no Connect</button>
 <div style="text-align:center;margin-top:12px;font-size:13px;color:#94a3b8">Primeiro acesso? <span style="color:#6366f1;cursor:pointer" onclick="switchTab('reg')">Criar conta</span></div>
-<div style="margin-top:16px;padding:12px;background:#0f172a;border-radius:10px;border:1px solid #334155"><div style="font-size:12px;color:#94a3b8;font-weight:600;margin-bottom:4px">📱💻 Funciona em todos os dispositivos:</div><div style="font-size:11px;color:#64748b">Mesmo login no PC e celular. Mensagens sincronizadas em tempo real via Firebase. Instale como App no celular.</div></div>
 </div>
 <div id="formReg" style="display:none">
 <label>Nome completo</label><input id="r_nome" placeholder="Ex: João Silva" autocomplete="name">
@@ -139,7 +136,7 @@ input:focus{border-color:#6366f1}
 
 <div id="adminPanelModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;align-items:center;justify-content:center;padding:20px">
 <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:600px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column">
-<div style="padding:16px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#7c3aed,#6366f1)"><b style="color:white">👑 Admin - kenedybentess@gmail.com</b><button onclick="closeAdminPanel()" style="width:32px;height:32px;border-radius:8px;border:1px solid #ffffff33;background:#00000033;color:white;cursor:pointer">✕</button></div>
+<div style="padding:16px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#7c3aed,#6366f1)"><b style="color:white">👑 Admin</b><button onclick="closeAdminPanel()" style="width:32px;height:32px;border-radius:8px;border:1px solid #ffffff33;background:#00000033;color:white;cursor:pointer">✕</button></div>
 <div style="padding:12px;display:flex;gap:8px;border-bottom:1px solid #334155;background:#0f172a">
 <button onclick="switchAdminTab('users')" id="adminTabUsers" style="flex:1;padding:10px;border-radius:8px;border:1px solid #6366f1;background:#6366f122;color:white;cursor:pointer;font-weight:600">👥 (<span id="adminUserCount">0</span>)</button>
 <button onclick="switchAdminTab('channels')" id="adminTabChannels" style="flex:1;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">📢</button>
@@ -187,18 +184,85 @@ async function initFirebase(){
   await loadScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js");
   firebase.initializeApp(firebaseConfig);
   firebaseLoaded=true;
-  document.getElementById('status').textContent='Firebase pronto - PC e Celular';
+  document.getElementById('status').textContent='Firebase pronto - presença real';
   document.getElementById('status').style.color='#22c55e';
   setupAuth();
  }catch(e){ document.getElementById('status').textContent='Erro: '+e.message; }
 }
-let currentUser=null, currentChannel='geral', currentChannelType='channel', listeners={}, messagesCache={}, channelType='public', allChannelsCache={}, unreadCounts={}, globalNotifiers={}, initialLoadDone=false, notifPermission=false, notifSoundEnabled=true, originalTitle=document.title, readsCache={}, readsListener=null;
+let currentUser=null, currentChannel='geral', currentChannelType='channel', listeners={}, messagesCache={}, channelType='public', allChannelsCache={}, unreadCounts={}, globalNotifiers={}, initialLoadDone=false, notifPermission=false, notifSoundEnabled=true, originalTitle=document.title, readsCache={}, readsListener=null, presenceRef=null;
 const ADMIN_EMAILS = ["kenedybentess@gmail.com", "kenedybentes@gmail.com"];
 function isAdmin(){ if(!currentUser || !currentUser.email) return false; return ADMIN_EMAILS.includes(currentUser.email.toLowerCase()); }
 function openSidebar(){ document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('show'); }
 function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
 function showErr(id,msg){const el=document.getElementById(id);el.style.display='block';el.textContent=msg}
 function hideErr(id){document.getElementById(id).style.display='none'}
+
+function setupPresence(uid){
+  // Sistema de presença REAL com onDisconnect
+  const userStatusRef = firebase.database().ref('users/'+uid);
+  const connectedRef = firebase.database().ref('.info/connected');
+  
+  connectedRef.on('value', (snap) => {
+    if(snap.val()===true){
+      // quando conecta, marca online e configura onDisconnect para offline
+      userStatusRef.onDisconnect().update({
+        online:false,
+        lastSeen: firebase.database.ServerValue.TIMESTAMP,
+        lastActive: firebase.database.ServerValue.TIMESTAMP
+      }).then(()=>{
+        userStatusRef.update({
+          online:true,
+          lastSeen: firebase.database.ServerValue.TIMESTAMP,
+          lastActive: firebase.database.ServerValue.TIMESTAMP
+        });
+      });
+    }
+  });
+
+  // atualiza lastActive a cada 30s enquanto estiver na página
+  setInterval(()=>{
+    if(currentUser && firebase.auth().currentUser){
+      userStatusRef.update({lastActive: firebase.database.ServerValue.TIMESTAMP, lastSeen: firebase.database.ServerValue.TIMESTAMP});
+    }
+  }, 30000);
+
+  // marca offline quando fecha aba/navegador
+  window.addEventListener('beforeunload', ()=>{
+    userStatusRef.update({online:false, lastSeen: firebase.database.ServerValue.TIMESTAMP});
+  });
+
+  // detecta quando fica inativo (sem mouse/teclado por 5 min = away)
+  let awayTimeout;
+  function resetAwayTimer(){
+    if(currentUser){
+      userStatusRef.update({online:true, lastActive: firebase.database.ServerValue.TIMESTAMP});
+      clearTimeout(awayTimeout);
+      awayTimeout=setTimeout(()=>{
+        userStatusRef.update({online:false, away:true, lastSeen: firebase.database.ServerValue.TIMESTAMP});
+      }, 5*60*1000);
+    }
+  }
+  ['mousemove','keydown','click','scroll','touchstart'].forEach(ev=>{
+    window.addEventListener(ev, resetAwayTimer, {passive:true});
+  });
+  resetAwayTimer();
+}
+
+function formatLastSeen(timestamp){
+  if(!timestamp) return 'offline';
+  const now=Date.now();
+  const diff=now-timestamp;
+  const mins=Math.floor(diff/60000);
+  if(mins<1) return 'agora há pouco';
+  if(mins<60) return `há ${mins} min`;
+  const hours=Math.floor(mins/60);
+  if(hours<24) return `há ${hours}h`;
+  const days=Math.floor(hours/24);
+  if(days===1) return 'há 1 dia';
+  if(days<7) return `há ${days} dias`;
+  return new Date(timestamp).toLocaleDateString('pt-BR');
+}
+
 function setupAuth(){
  firebase.auth().onAuthStateChanged(async (user)=>{
   if(user){
@@ -209,16 +273,16 @@ function setupAuth(){
      const pendingNome=localStorage.getItem('pendingNome')||user.email.split('@')[0];
      const pendingCargo=localStorage.getItem('pendingCargo')||'Colaborador';
      const pendingColor=localStorage.getItem('pendingColor')||selColor;
-     data={id:uid,nome:pendingNome,cargo:pendingCargo,email:user.email,avatarColor:pendingColor,online:true,createdAt:Date.now()};
+     data={id:uid,nome:pendingNome,cargo:pendingCargo,email:user.email,avatarColor:pendingColor,online:true,createdAt:Date.now(),lastSeen:Date.now(),lastActive:Date.now()};
      await firebase.database().ref('users/'+uid).set(data);
-   }else{
-     await firebase.database().ref('users/'+uid).update({online:true,lastSeen:firebase.database.ServerValue.TIMESTAMP});
    }
    currentUser={id:uid,...data,nome:data.nome||data.email.split('@')[0]};
    document.getElementById('loginScreen').style.display='none';
    document.getElementById('chatScreen').style.display='flex';
+   setupPresence(uid);
    initChat();
   }else{
+   if(presenceRef){ presenceRef.off(); }
    document.getElementById('loginScreen').style.display='flex';
    document.getElementById('chatScreen').style.display='none';
   }
@@ -263,12 +327,20 @@ function initChat(){
   const val=snap.val()||{}; const list=Object.values(val).filter(u=>u && u.id);
   window.allUsers=list;
   renderUsers();
-  document.getElementById('conn').textContent=list.length+' usuarios - '+list.filter(u=>u.online).length+' online';
+  // conta online de forma REAL (verifica lastActive < 2 min)
+  const now=Date.now();
+  const onlineCount=list.filter(u=>{
+    if(u.online===true) return true;
+    // considera offline se lastActive > 2 min atrás
+    if(u.lastActive && (now - u.lastActive) < 2*60*1000) return true;
+    return false;
+  }).length;
+  document.getElementById('conn').textContent=list.length+' usuarios - '+onlineCount+' online (real)';
   if(document.getElementById('createChannelModal').style.display==='flex') renderMembersChecklist();
  });
  firebase.database().ref('.info/connected').on('value',s=>{
    const sub=document.getElementById('chatSub');
-   if(!s.val()){ sub.textContent='Desconectado'; sub.style.color='#ef4444'; return; }
+   if(!s.val()){ sub.textContent='🔴 Desconectado'; sub.style.color='#ef4444'; return; }
    if(currentChannelType==='dm'){ sub.textContent='💬 Privada'; sub.style.color='#6366f1'; }
    else {
      const ch = allChannelsCache[currentChannel];
@@ -316,14 +388,23 @@ function renderUsers(filter=''){
  if(filter){const f=filter.toLowerCase(); list=list.filter(u=> ((u.nome||'')+' '+(u.cargo||'')+' '+(u.email||'')).toLowerCase().includes(f))}
  if(list.length===0){cont.innerHTML='<div style=color:#6b7280;font-size:13px;padding:8px>Nenhum usuario.</div>';return}
  cont.innerHTML='';
- list.sort((a,b)=>(b.online?1:0)-(a.online?1:0)).forEach(u=>{
+ const now=Date.now();
+ list.sort((a,b)=>{
+   const aOnline = a.online && (!a.lastActive || (now - a.lastActive) < 2*60*1000);
+   const bOnline = b.online && (!b.lastActive || (now - b.lastActive) < 2*60*1000);
+   return (bOnline?1:0)-(aOnline?1:0);
+ }).forEach(u=>{
   const nome=u.nome|| (u.email?u.email.split('@')[0]:'Usuario');
   const dmId = [currentUser.id, u.id].sort().join('_');
   const unread = unreadCounts[dmId]||0;
+  // verifica se realmente online (lastActive < 2min)
+  const isReallyOnline = u.online && (!u.lastActive || (now - u.lastActive) < 2*60*1000);
+  const statusText = isReallyOnline ? 'online' : (u.lastSeen ? 'visto '+formatLastSeen(u.lastSeen) : 'offline');
+  const statusClass = isReallyOnline ? 'status-online' : 'status-offline';
   const d=document.createElement('div');d.style.cssText='display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;cursor:pointer;color:#d1d5db;position:relative';
   if(unread>0){ d.style.background='#1f2937'; d.style.border='1px solid #ef444433'; }
   d.onmouseenter=()=>{ if(unread===0) d.style.background='#1f2937'; }; d.onmouseleave=()=>{ if(unread===0) d.style.background='transparent'; };
-  d.innerHTML=`<div style="width:32px;height:32px;border-radius:50%;background:${u.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;font-size:12px">${nome[0].toUpperCase()}</div><div style="flex:1"><div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px">${nome} ${unread>0?`<span class="badge badge-dm">${unread>99?'99+':unread}</span>`:''}</div><div style="font-size:11px;color:#6b7280">${u.cargo||u.email} - ${u.online?'online':'offline'}</div></div><div style="width:8px;height:8px;border-radius:50%;background:${u.online?'#22c55e':'#4b5563'}"></div>`;
+  d.innerHTML=`<div style="position:relative"><div style="width:32px;height:32px;border-radius:50%;background:${u.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;font-size:12px">${nome[0].toUpperCase()}</div><div class="status-dot ${statusClass}" style="position:absolute;bottom:-2px;right:-2px"></div></div><div style="flex:1"><div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px">${nome} ${unread>0?`<span class="badge badge-dm">${unread>99?'99+':unread}</span>`:''}</div><div style="font-size:11px;color:${isReallyOnline?'#22c55e':'#6b7280'}">${u.cargo||u.email} • ${statusText}</div></div>`;
   d.onclick=()=>{ selectUser(u); closeSidebar(); };
   cont.appendChild(d);
  });
@@ -680,10 +761,12 @@ function renderAdminUsers(){
  const map={}; users.forEach(u=>{ if(u && u.id) map[u.id]=u; });
  const list=Object.values(map);
  document.getElementById('adminUserCount').textContent=list.length;
- cont.innerHTML=`<div style="margin-bottom:12px;font-size:13px;color:#94a3b8">Total: ${list.length} usuários</div>`;
+ cont.innerHTML=`<div style="margin-bottom:12px;font-size:13px;color:#94a3b8">Total: ${list.length} usuários - presença real corrigida</div>`;
  list.sort((a,b)=> (a.email||'').localeCompare(b.email||'')).forEach(u=>{
    const isSelf = u.id===currentUser.id;
    const isAdminUser = ADMIN_EMAILS.includes((u.email||'').toLowerCase());
+   const now=Date.now();
+   const isOnline = u.online && (!u.lastActive || (now - u.lastActive) < 2*60*1000);
    const div=document.createElement('div');
    div.style.cssText='display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #334155;border-radius:10px;margin-bottom:8px;background:#0f172a';
    div.innerHTML=`
@@ -691,7 +774,7 @@ function renderAdminUsers(){
      <div style="flex:1">
        <div style="font-weight:600;color:white">${u.nome||'Sem nome'} ${isAdminUser?'<span style="background:#7c3aed;color:white;font-size:10px;padding:2px 6px;border-radius:4px">ADMIN</span>':''}</div>
        <div style="font-size:12px;color:#94a3b8">${u.email||''} • ${u.cargo||''}</div>
-       <div style="font-size:11px;color:#6b7280">${u.online?'🟢 online':'⚫ offline'}</div>
+       <div style="font-size:11px;color:${isOnline?'#22c55e':'#6b7280'}">${isOnline?'🟢 online':('⚫ '+formatLastSeen(u.lastSeen))}</div>
      </div>
      <div style="display:flex;flex-direction:column;gap:6px">
        <button onclick="openEditUser('${u.id}')" style="padding:6px 12px;border-radius:6px;border:1px solid #334155;background:#1f2937;color:#94a3b8;cursor:pointer;font-size:12px">✏️ Editar</button>
@@ -746,7 +829,12 @@ function renderAdminMessages(){
  cont.innerHTML=`<div style="padding:12px;background:#7c3aed22;border:1px solid #7c3aed44;border-radius:10px;margin-bottom:12px"><div style="font-weight:600;color:white;margin-bottom:6px">👑 Poderes Admin:</div><ul style="font-size:13px;color:#d1d5db;margin-left:16px"><li>Excluir qualquer mensagem</li><li>Editar/excluir usuários</li><li>Excluir canais</li><li>Ver canais privados</li></ul></div><button onclick="if(confirm('Limpar TODAS as mensagens?')){ firebase.database().ref('channels').remove(); firebase.database().ref('dms').remove(); alert('Apagadas!'); }" style="width:100%;padding:12px;border-radius:10px;border:1px solid #7f1d1d;background:#7f1d1d22;color:#f87171;cursor:pointer;font-weight:600">⚠️ Limpar todas as mensagens</button>`;
 }
 async function doLogout(){
- if(currentUser) await firebase.database().ref('users/'+currentUser.id).update({online:false});
+ try{
+   if(currentUser){
+     await firebase.database().ref('users/'+currentUser.id).update({online:false, lastSeen: firebase.database.ServerValue.TIMESTAMP, lastActive: firebase.database.ServerValue.TIMESTAMP});
+     await firebase.database().ref('users/'+currentUser.id).onDisconnect().cancel();
+   }
+ }catch(e){}
  await firebase.auth().signOut();
  location.reload();
 }
