@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Connect Elgin - Completo com Não Lidas</title>
+<title>Connect Elgin - Completo com Visualizado</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,sans-serif}
 body{background:#0f172a;color:#e2e8f0}
@@ -28,14 +28,18 @@ input:focus{border-color:#6366f1}
 .main{flex:1;display:flex;flex-direction:column;background:#f8fafc}
 #msgInput{background:#ffffff !important;color:#111827 !important;-webkit-text-fill-color:#111827 !important;caret-color:#111827 !important}
 #msgInput::placeholder{color:#9ca3af !important}
-.msg-wrap{position:relative; display:flex; gap:10px; margin-bottom:16px}
+.msg-wrap{position:relative; display:flex; gap:10px; margin-bottom:18px}
 .msg-wrap:hover .msg-actions{opacity:1}
 .msg-actions{opacity:0; transition:.2s; display:flex; gap:6px; margin-left:8px}
 .del-btn{background:#fee2e2;border:1px solid #fecaca;color:#dc2626;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:11px}
-.del-btn:hover{background:#fecaca}
 .badge{background:#ef4444;color:white;font-size:11px;font-weight:700;min-width:20px;height:20px;padding:0 6px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center}
 .badge-channel{background:#6366f1}
 .badge-dm{background:#ef4444}
+.read-status{font-size:11px;margin-top:4px;display:flex;align-items:center;gap:4px}
+.read-sent{color:#94a3b8}
+.read-delivered{color:#64748b}
+.read-seen{color:#22c55e;font-weight:600}
+.read-seen-blue{color:#0ea5e9;font-weight:700}
 </style>
 </head>
 <body>
@@ -94,7 +98,7 @@ input:focus{border-color:#6366f1}
 <input id="newChannelName" placeholder="Ex: ti, financeiro" style="width:100%;padding:12px;border-radius:10px;border:1px solid #334155;background:#0f172a;color:white">
 <div style="display:flex;gap:8px;margin:12px 0"><button id="typePublic" onclick="setChannelType('public')" style="flex:1;padding:8px;border-radius:8px;border:1px solid #6366f1;background:#6366f122;color:white;font-size:13px;cursor:pointer">🌐 Público</button><button id="typePrivate" onclick="setChannelType('private')" style="flex:1;padding:8px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;font-size:13px;cursor:pointer">🔒 Privado</button></div>
 <div id="membersSection" style="display:none">
-<label style="font-size:13px;margin-bottom:6px;display:block">Atribuir pessoas específicas:</label>
+<label style="font-size:13px;margin-bottom:6px;display:block">Atribuir pessoas:</label>
 <div id="membersChecklist" style="max-height:180px;overflow:auto;border:1px solid #334155;border-radius:10px;padding:8px;background:#0f172a"></div>
 </div>
 <div id="createChanErr" style="display:none;background:#7f1d1d33;border:1px solid #7f1d1d;color:#fecaca;padding:8px;border-radius:8px;font-size:12px;margin-top:10px"></div>
@@ -138,7 +142,7 @@ async function initFirebase(){
   setupAuth();
  }catch(e){ document.getElementById('status').textContent='Erro: '+e.message; }
 }
-let currentUser=null, currentChannel='geral', currentChannelType='channel', listeners={}, messagesCache={}, channelType='public', allChannelsCache={}, unreadCounts={}, globalNotifiers={}, initialLoadDone=false, notifPermission=false, notifSoundEnabled=true, originalTitle=document.title;
+let currentUser=null, currentChannel='geral', currentChannelType='channel', listeners={}, messagesCache={}, channelType='public', allChannelsCache={}, unreadCounts={}, globalNotifiers={}, initialLoadDone=false, notifPermission=false, notifSoundEnabled=true, originalTitle=document.title, readsCache={}, readsListener=null;
 function showErr(id,msg){const el=document.getElementById(id);el.style.display='block';el.textContent=msg}
 function hideErr(id){document.getElementById(id).style.display='none'}
 function setupAuth(){
@@ -211,11 +215,11 @@ function initChat(){
  firebase.database().ref('.info/connected').on('value',s=>{
    const sub=document.getElementById('chatSub');
    if(!s.val()){ sub.textContent='Desconectado'; sub.style.color='#ef4444'; return; }
-   if(currentChannelType==='dm'){ sub.textContent='💬 Conversa privada'; sub.style.color='#6366f1'; }
+   if(currentChannelType==='dm'){ sub.textContent='💬 Privada'; sub.style.color='#6366f1'; }
    else {
      const ch = allChannelsCache[currentChannel];
      if(ch && ch.members){ sub.textContent='🔒 Privado - '+Object.keys(ch.members).length+' membros'; sub.style.color='#f59e0b'; }
-     else sub.textContent='● Canal público';
+     else sub.textContent='● Público';
    }
  });
  selectChannel('geral','# geral','channel');
@@ -224,7 +228,7 @@ function initChat(){
  document.getElementById('msgForm').onsubmit=(e)=>{e.preventDefault();sendMsg()};
  document.getElementById('attachBtn').onclick=()=>document.getElementById('fileInput').click();
  document.getElementById('fileInput').onchange=(e)=>{const f=e.target.files[0]; if(f) showFilePreview(f); e.target.value='';};
- window.addEventListener('focus', ()=>{ document.title=originalTitle; if(currentChannel) clearUnread(currentChannel); });
+ window.addEventListener('focus', ()=>{ document.title=originalTitle; if(currentChannel){ clearUnread(currentChannel); markAsRead(); } });
 }
 
 function renderChannelList(channelsObj){
@@ -246,7 +250,7 @@ function renderChannelList(channelsObj){
   const canDelete = ch.id!=='geral';
   const isPrivate = ch.members ? '🔒 ' : '';
   const badge = unread>0 ? `<span class="badge badge-channel">${unread>99?'99+':unread}</span>` : '';
-  d.innerHTML=`<span style="flex:1;display:flex;align-items:center;gap:6px" onclick="selectChannel('${ch.id}','${ch.label}','channel')">${isPrivate}${ch.label} ${badge}</span><div style="display:flex;gap:4px"><button onclick="openManageMembers('${ch.id}')" title="Membros" style="width:20px;height:20px;border-radius:4px;border:none;background:transparent;color:#6366f1;cursor:pointer;font-size:12px">👥</button>${canDelete?`<button onclick="deleteChannel('${ch.id}','${ch.label}')" style="width:20px;height:20px;border-radius:4px;border:none;background:transparent;color:#ef4444;cursor:pointer;font-size:12px">🗑️</button>`:''}</div>`;
+  d.innerHTML=`<span style="flex:1;display:flex;align-items:center;gap:6px" onclick="selectChannel('${ch.id}','${ch.label}','channel')">${isPrivate}${ch.label} ${badge}</span><div style="display:flex;gap:4px"><button onclick="openManageMembers('${ch.id}')" style="width:20px;height:20px;border-radius:4px;border:none;background:transparent;color:#6366f1;cursor:pointer;font-size:12px">👥</button>${canDelete?`<button onclick="deleteChannel('${ch.id}','${ch.label}')" style="width:20px;height:20px;border-radius:4px;border:none;background:transparent;color:#ef4444;cursor:pointer;font-size:12px">🗑️</button>`:''}</div>`;
   cl.appendChild(d);
  });
  updateTotalUnread();
@@ -259,13 +263,13 @@ function renderUsers(filter=''){
  if(list.length===0){cont.innerHTML='<div style=color:#6b7280;font-size:13px;padding:8px>Nenhum usuario.</div>';return}
  cont.innerHTML='';
  list.sort((a,b)=>(b.online?1:0)-(a.online?1:0)).forEach(u=>{
-  const nome=u.nome|| (u.email?u.email.split('@')[0]:'Usuario'); const cargo=u.cargo||u.email||'';
+  const nome=u.nome|| (u.email?u.email.split('@')[0]:'Usuario');
   const dmId = [currentUser.id, u.id].sort().join('_');
   const unread = unreadCounts[dmId]||0;
   const d=document.createElement('div');d.style.cssText='display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;cursor:pointer;color:#d1d5db;position:relative';
   if(unread>0){ d.style.background='#1f2937'; d.style.border='1px solid #ef444433'; }
   d.onmouseenter=()=>{ if(unread===0) d.style.background='#1f2937'; }; d.onmouseleave=()=>{ if(unread===0) d.style.background='transparent'; };
-  d.innerHTML=`<div style="width:32px;height:32px;border-radius:50%;background:${u.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;font-size:12px">${nome[0].toUpperCase()}</div><div style="flex:1"><div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px">${nome} ${unread>0?`<span class="badge badge-dm">${unread>99?'99+':unread}</span>`:''}</div><div style="font-size:11px;color:#6b7280">${cargo} - ${u.online?'online':'offline'}</div></div><div style="width:8px;height:8px;border-radius:50%;background:${u.online?'#22c55e':'#4b5563'}"></div>`;
+  d.innerHTML=`<div style="width:32px;height:32px;border-radius:50%;background:${u.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;font-size:12px">${nome[0].toUpperCase()}</div><div style="flex:1"><div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px">${nome} ${unread>0?`<span class="badge badge-dm">${unread>99?'99+':unread}</span>`:''}</div><div style="font-size:11px;color:#6b7280">${u.cargo||u.email} - ${u.online?'online':'offline'}</div></div><div style="width:8px;height:8px;border-radius:50%;background:${u.online?'#22c55e':'#4b5563'}"></div>`;
   d.onclick=()=>selectUser(u);
   cont.appendChild(d);
  });
@@ -331,6 +335,7 @@ function deleteChannel(id, label){
  if(!confirm('Excluir canal '+label+'?')) return;
  firebase.database().ref('channel_list/'+id).remove();
  firebase.database().ref('channels/'+id).remove();
+ firebase.database().ref('channels/'+id+'/reads').remove();
  if(currentChannel===id) selectChannel('geral','# geral','channel');
 }
 let editingChannelId=null;
@@ -367,28 +372,83 @@ function saveMembers(){
 
 function selectChannel(id,label,type='channel'){
  if(listeners.msg){ listeners.msg.off('child_added'); listeners.msg.off('child_removed'); }
- currentChannel=id; currentChannelType=type; messagesCache={};
+ if(readsListener){ readsListener.off(); readsListener=null; }
+ currentChannel=id; currentChannelType=type; messagesCache={}; readsCache={};
  document.getElementById('chatTitle').textContent=label;
  const ch = allChannelsCache[id];
  const sub=document.getElementById('chatSub');
- if(type==='dm'){ sub.textContent='💬 Privada - não aparece no #geral'; sub.style.color='#6366f1'; document.getElementById('manageMembersBtn').style.display='none'; }
+ if(type==='dm'){ sub.textContent='💬 Privada'; sub.style.color='#6366f1'; document.getElementById('manageMembersBtn').style.display='none'; }
  else { if(ch && ch.members){ sub.textContent='🔒 Privado - '+Object.keys(ch.members).length+' membros'; sub.style.color='#f59e0b'; } else sub.textContent='● Público'; document.getElementById('manageMembersBtn').style.display='block'; }
  document.getElementById('msgs').innerHTML='';
  clearUnread(id);
- let path = type==='dm' ? 'dms/'+id+'/messages' : 'channels/'+id+'/messages';
+ let basePath = type==='dm' ? 'dms/'+id : 'channels/'+id;
  if(type==='channel' && ch && ch.members && !ch.members[currentUser.id] && ch.createdBy!==currentUser.id){
-   document.getElementById('msgs').innerHTML='<div style="text-align:center;padding:40px;color:#64748b">🔒 Sem acesso a este canal privado</div>'; return;
+   document.getElementById('msgs').innerHTML='<div style="text-align:center;padding:40px;color:#64748b">🔒 Sem acesso</div>'; return;
  }
- const ref=firebase.database().ref(path).limitToLast(150);
+ const ref=firebase.database().ref(basePath+'/messages').limitToLast(150);
  listeners.msg=ref;
- ref.on('child_added',snap=>{ const m=snap.val(); if(!m) return; messagesCache[snap.key]=m; addMsg(m, snap.key); });
+ ref.on('child_added',snap=>{ const m=snap.val(); if(!m) return; messagesCache[snap.key]=m; addMsg(m, snap.key); if(m.userId!==currentUser.id){ setTimeout(()=>markAsRead(),500); } });
  ref.on('child_removed',snap=>{ const el=document.getElementById('msg-'+snap.key); if(el) el.remove(); delete messagesCache[snap.key]; });
+ // listener para visualizações
+ const readsRef=firebase.database().ref(basePath+'/reads');
+ readsListener=readsRef;
+ readsRef.on('value', snap=>{
+   readsCache=snap.val()||{};
+   // atualiza status de todas as mensagens já renderizadas
+   Object.keys(messagesCache).forEach(k=>{
+     updateReadStatus(k, messagesCache[k]);
+   });
+ });
+ // marca como lido ao entrar
+ setTimeout(()=>markAsRead(),1000);
 }
+
+function markAsRead(){
+ if(!currentUser) return;
+ let basePath = currentChannelType==='dm' ? 'dms/'+currentChannel : 'channels/'+currentChannel;
+ const lastKey = Object.keys(messagesCache).length ? Object.keys(messagesCache)[Object.keys(messagesCache).length-1] : null;
+ const lastMsg = lastKey ? messagesCache[lastKey] : null;
+ const data = {userId: currentUser.id, nome: currentUser.nome, timestamp: Date.now(), lastMessageId: lastKey||'', lastMessageTime: lastMsg ? lastMsg.timestamp : Date.now()};
+ firebase.database().ref(basePath+'/reads/'+currentUser.id).set(data);
+}
+
+function getReadStatus(msgKey, msg){
+ if(!msg || msg.userId!==currentUser.id) return null;
+ // não mostra status para mensagens próprias se ninguém leu além de você
+ const reads = Object.values(readsCache).filter(r=>r.userId!==currentUser.id);
+ if(reads.length===0) return {icon:'✓', text:'Enviado', cls:'read-sent'};
+ // verifica se alguém leu esta mensagem específica
+ let seenBy=[];
+ reads.forEach(r=>{
+   if(r.lastMessageTime && r.lastMessageTime >= msg.timestamp) seenBy.push(r);
+   else if(r.lastMessageId && messagesCache[r.lastMessageId] && messagesCache[r.lastMessageId].timestamp >= msg.timestamp) seenBy.push(r);
+ });
+ if(seenBy.length===0){
+   return {icon:'✓✓', text:'Entregue', cls:'read-delivered'};
+ }
+ if(currentChannelType==='dm'){
+   const seen = seenBy[0];
+   return {icon:'✓✓', text:'Visualizado por '+seen.nome, cls:'read-seen-blue'};
+ } else {
+   if(seenBy.length===1) return {icon:'✓✓', text:'Visto por '+seenBy[0].nome, cls:'read-seen'};
+   return {icon:'✓✓', text:'Visto por '+seenBy.length+' pessoas', cls:'read-seen'};
+ }
+}
+
+function updateReadStatus(msgKey, msg){
+ const el=document.getElementById('read-'+msgKey);
+ if(!el) return;
+ const status=getReadStatus(msgKey, msg);
+ if(!status){ el.innerHTML=''; return; }
+ el.innerHTML=`<span class="${status.cls}">${status.icon} ${status.text}</span>`;
+}
+
 function selectUser(u){
  const ids=[currentUser.id,u.id].sort(); const dmId=ids.join('_');
  selectChannel(dmId,'💬 '+ (u.nome||u.email), 'dm');
  document.getElementById('chatTitle').textContent='💬 '+ (u.nome||u.email);
 }
+
 function addMsg(m, key){
  if(!m) return;
  const msgKey = key || m.id;
@@ -405,12 +465,12 @@ function addMsg(m, key){
    else content+=`<div style="display:flex;align-items:center;gap:10px;background:#f1f5f9;padding:10px;border-radius:10px;margin-top:8px;border:1px solid #e2e8f0"><div style="font-size:24px">📄</div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#111827">${m.fileName||'arquivo'}</div></div><a href="${m.fileUrl}" target="_blank" download style="padding:6px 12px;background:#6366f1;color:white;border-radius:8px;text-decoration:none;font-size:12px">Baixar</a></div>`;
  }
  const delBtn = isMe ? `<div class="msg-actions"><button class="del-btn" onclick="deleteMsg('${msgKey}')" title="Excluir">🗑️</button></div>` : '';
- wrap.innerHTML=`<div style="width:36px;height:36px;border-radius:50%;background:${m.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;flex-shrink:0">${nome[0].toUpperCase()}</div><div><div style="display:flex;gap:8px;align-items:center"><b style="font-size:14px;color:#111827">${escapeHtml(nome)}</b><span style="font-size:11px;color:#64748b">${m.timestamp?new Date(m.timestamp).toLocaleTimeString():''}</span>${delBtn}</div>${content}</div>`;
+ const status = getReadStatus(msgKey, m);
+ const statusHtml = status && isMe ? `<div id="read-${msgKey}" class="read-status"><span class="${status.cls}">${status.icon} ${status.text}</span></div>` : (isMe ? `<div id="read-${msgKey}" class="read-status"><span class="read-sent">✓ Enviado</span></div>` : '');
+ wrap.innerHTML=`<div style="width:36px;height:36px;border-radius:50%;background:${m.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;flex-shrink:0">${nome[0].toUpperCase()}</div><div><div style="display:flex;gap:8px;align-items:center"><b style="font-size:14px;color:#111827">${escapeHtml(nome)}</b><span style="font-size:11px;color:#64748b">${m.timestamp?new Date(m.timestamp).toLocaleTimeString():''}</span>${delBtn}</div>${content}${statusHtml}</div>`;
  box.appendChild(wrap); box.scrollTop=box.scrollHeight;
- if(!isMe && initialLoadDone && m.timestamp && Date.now()-m.timestamp<15000 && document.hidden){
-   playNotifSound();
- }
 }
+
 let pendingFile=null;
 function showFilePreview(file){
  if(file.size>15*1024*1024){ alert('Arquivo muito grande'); return; }
@@ -551,8 +611,7 @@ function setupGlobalNotifications(){
      if(Date.now() - m.timestamp > 10000) return;
      if(dmId===currentChannel && !document.hidden) return;
      unreadCounts[dmId]=(unreadCounts[dmId]||0)+1;
-     renderUsers();
-     renderChannelList(allChannelsCache);
+     renderUsers(); renderChannelList(allChannelsCache);
      const preview = m.text ? m.text.substring(0,60) : '📎 Arquivo';
      showBrowserNotification('💬 '+m.user, preview, dmId);
      playNotifSound();
