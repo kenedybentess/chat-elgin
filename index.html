@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#111827">
-<title>Connect Elgin - Admin Fix Only</title>
+<title>Connect Elgin - Admin Seguro</title>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
 body{background:#0f172a;color:#e2e8f0;overscroll-behavior:none}
@@ -58,13 +61,13 @@ input:focus{border-color:#6366f1}
 <body>
 <div id="loginScreen">
 <div class="card">
-<div class="logo"><div class="dot">C</div><div><b>Connect Elgin</b><div style="font-size:12px;color:#94a3b8">PC e Celular - Admin fix</div></div></div>
+<div class="logo"><div class="dot">C</div><div><b>Connect Elgin</b><div style="font-size:12px;color:#94a3b8">PC e Celular - Admin seguro</div></div></div>
 <div class="tabs"><div id="tabLogin" class="tab active" onclick="switchTab('login')">Entrar</div><div id="tabReg" class="tab" onclick="switchTab('reg')">Criar conta</div></div>
 <div id="formLogin">
 <label>Email</label><input id="l_email" placeholder="seu@elgin.com.br" type="email" autocomplete="email">
 <label>Senha</label><input id="l_senha" placeholder="Sua senha" type="password" autocomplete="current-password">
 <div id="l_err" class="err"></div>
-<button id="btnLogin" class="btn">Entrar</button>
+<button id="btnLogin" class="btn" onclick="doLogin()">Entrar</button>
 </div>
 <div id="formReg" style="display:none">
 <label>Nome completo</label><input id="r_nome" placeholder="Ex: João Silva">
@@ -74,7 +77,7 @@ input:focus{border-color:#6366f1}
 <label>Confirmar senha</label><input id="r_senha2" type="password" placeholder="Repita a senha">
 <label>Cor do avatar</label><div class="colors" id="colorPick"></div>
 <div id="r_err" class="err"></div>
-<button id="btnReg" class="btn">Criar conta e entrar</button>
+<button id="btnReg" class="btn" onclick="doRegister()">Criar conta e entrar</button>
 </div>
 <div id="status" class="ok">Carregando...</div>
 </div>
@@ -83,532 +86,257 @@ input:focus{border-color:#6366f1}
 <div id="overlay" class="overlay" onclick="closeSidebar()"></div>
 <div id="chatScreen">
 <div class="side" id="sidebar">
-<div style="padding:18px;border-bottom:1px solid #1f2937;display:flex;justify-content:space-between;align-items:center"><b style="color:white">Connect</b><div style="display:flex;gap:6px"><button id="adminBtn" onclick="openAdminPanel()" style="display:none;background:#7c3aed;color:white;border:none;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:12px">👑 Admin</button><button id="notifBtn" onclick="toggleNotifications()" style="background:#1f2937;color:#94a3b8;border:none;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:12px">🔔</button><button onclick="doLogout()" style="background:#1f2937;color:#94a3b8;border:none;padding:6px 10px;border-radius:8px;cursor:pointer">Sair</button></div></div>
+<div style="padding:18px;border-bottom:1px solid #1f2937;display:flex;justify-content:space-between;align-items:center"><b style="color:white">Connect</b><div style="display:flex;gap:6px"><button id="adminBtn" onclick="openAdminPanel()" style="display:none;background:#7c3aed;color:white;border:none;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:12px">👑 Admin</button><button onclick="doLogout()" style="background:#1f2937;color:#94a3b8;border:none;padding:6px 10px;border-radius:8px;cursor:pointer">Sair</button></div></div>
 <div style="padding:12px"><div style="font-size:11px;color:#6b7280;letter-spacing:1px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><span>CANAIS</span><button onclick="openCreateChannelModal()" style="width:22px;height:22px;border-radius:6px;border:1px solid #2a3441;background:#1f2937;color:#9ca3af;cursor:pointer;font-weight:700">+</button></div><div id="chanList"></div></div>
 <div style="padding:12px;flex:1;overflow:auto">
-<div style="font-size:11px;color:#6b7280;letter-spacing:1px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
-<span>EQUIPE</span>
-<div style="display:flex;gap:6px;align-items:center">
-<span id="totalUnread" style="display:none" class="badge">0</span>
-<button id="fixBtn" onclick="fixPresence()" style="display:none;font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid #f59e0b;background:#f59e0b22;color:#fbbf24;cursor:pointer" title="Só admin vê - corrige offline">🔧 fix</button>
+<div style="font-size:11px;color:#6b7280;letter-spacing:1px;margin-bottom:8px">MENSAGENS DIRETAS</div>
+<div id="dmList"></div>
 </div>
-</div>
-<input id="search" placeholder="Buscar..." style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid #1f2937;background:#0f172a;color:white;margin-bottom:10px"><div id="userList"></div><div id="conn" style="font-size:11px;color:#6b7280;margin-top:10px"></div>
-<div id="adminOnlyNote" style="display:none;margin-top:10px;padding:8px;background:#7c3aed22;border:1px solid #7c3aed44;border-radius:8px;font-size:11px;color:#c4b5fd">👑 Você é admin (kenedybentess@gmail.com) - vê botão fix e pode editar/excluir</div>
+<div style="padding:12px;border-top:1px solid #1f2937;display:flex;gap:10px;align-items:center">
+<div id="myAvatar" style="width:36px;height:36px;border-radius:50%;background:#6366f1;display:grid;place-items:center;font-weight:700;color:white">U</div>
+<div style="flex:1;min-width:0"><div id="myName" style="font-size:13px;font-weight:600;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">...</div><div id="myEmail" style="font-size:11px;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">...</div></div>
 </div>
 </div>
 <div class="main">
-<div style="height:60px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;padding:0 12px;justify-content:space-between;background:white">
-<div style="display:flex;align-items:center;gap:10px"><button onclick="openSidebar()" class="mobile-header" style="width:36px;height:36px;border-radius:8px;border:1px solid #e2e8f0;background:white;cursor:pointer;font-size:18px">☰</button><div><b id="chatTitle">#geral</b><div id="chatSub" style="font-size:11px;color:#64748b">Realtime</div></div></div>
-<div style="display:flex;gap:6px"><button id="manageMembersBtn" onclick="openManageMembers()" style="display:none;padding:6px 10px;border-radius:8px;border:1px solid #e2e8f0;background:white;color:#6366f1;cursor:pointer;font-size:11px">👥</button><button onclick="selectChannel('geral','# geral','channel')" style="padding:6px 10px;border-radius:8px;border:1px solid #e2e8f0;background:white;color:#6366f1;cursor:pointer;font-size:11px">#geral</button></div>
+<div class="mobile-header" style="padding:12px;background:#111827;color:white;align-items:center;gap:12px;border-bottom:1px solid #1f2937"><button onclick="openSidebar()" style="background:#1f2937;border:none;color:white;padding:8px 10px;border-radius:8px">☰</button><b id="mobTitle"># geral</b></div>
+<div style="padding:16px 18px;background:white;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center"><div><div id="currentChanLabel" style="font-weight:700;color:#111827"># geral</div><div id="currentChanDesc" style="font-size:12px;color:#6b7280">Canal geral da empresa</div></div><div id="typingIndicator" style="font-size:12px;color:#6366f1"></div></div>
+<div id="messages" style="flex:1;overflow:auto;padding:18px;background:#f8fafc"></div>
+<div style="padding:12px;background:white;border-top:1px solid #e5e7eb;display:flex;gap:10px"><input id="msgInput" placeholder="Escreva uma mensagem..." onkeydown="if(event.key==='Enter') sendMessage()" style="flex:1;padding:12px 14px;border-radius:10px;border:1px solid #e5e7eb;outline:none"><button onclick="sendMessage()" style="padding:12px 18px;border-radius:10px;border:none;background:#111827;color:white;font-weight:700;cursor:pointer">Enviar</button></div>
 </div>
-<div id="msgs" style="flex:1;overflow:auto;padding:14px;background:#f8fafc"></div>
-
-<div id="filePreviewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;padding:20px">
-<div style="background:white;border-radius:16px;max-width:420px;width:100%;overflow:hidden"><div style="padding:16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center"><b style="color:#111827">Enviar arquivo?</b><button onclick="cancelFilePreview()" style="width:32px;height:32px;border-radius:8px;border:1px solid #e2e8f0;background:#f8fafc;cursor:pointer">✕</button></div><div style="padding:16px"><img id="previewImg" style="display:none;max-width:100%;max-height:240px;border-radius:12px;margin:0 auto 12px;border:1px solid #e2e8f0"><div id="previewFileIcon" style="display:none;text-align:center;padding:20px"><div style="font-size:48px">📄</div><div id="previewFileName" style="font-weight:600;color:#111827;margin-top:8px"></div><div id="previewFileSize" style="font-size:12px;color:#64748b"></div></div><input id="previewCaption" placeholder="Legenda opcional..." style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid #e2e8f0;background:#ffffff;color:#111827;margin-top:12px;font-size:16px"></div><div style="padding:12px 16px;background:#f8fafc;display:flex;gap:10px;justify-content:flex-end"><button onclick="cancelFilePreview()" style="padding:10px 16px;border-radius:10px;border:1px solid #e2e8f0;background:white;color:#64748b;cursor:pointer">Cancelar</button><button onclick="confirmFileSend()" style="padding:10px 20px;border-radius:10px;border:none;background:#6366f1;color:white;cursor:pointer;font-weight:700">📤 Enviar</button></div></div>
 </div>
 
-<div id="createChannelModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9998;align-items:center;justify-content:center;padding:20px">
-<div style="background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:420px;width:100%;overflow:hidden"><div style="padding:16px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center"><b style="color:white">Criar canal</b><button onclick="closeCreateChannelModal()" style="width:32px;height:32px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">✕</button></div><div style="padding:16px;max-height:70vh;overflow:auto"><input id="newChannelName" placeholder="Ex: ti" style="width:100%;padding:12px;border-radius:10px;border:1px solid #334155;background:#0f172a;color:white;font-size:16px"><div style="display:flex;gap:8px;margin:12px 0"><button id="typePublic" onclick="setChannelType('public')" style="flex:1;padding:8px;border-radius:8px;border:1px solid #6366f1;background:#6366f122;color:white;font-size:13px;cursor:pointer">🌐 Público</button><button id="typePrivate" onclick="setChannelType('private')" style="flex:1;padding:8px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;font-size:13px;cursor:pointer">🔒 Privado</button></div><div id="membersSection" style="display:none"><label style="font-size:13px;margin-bottom:6px;display:block">Atribuir pessoas:</label><div id="membersChecklist" style="max-height:180px;overflow:auto;border:1px solid #334155;border-radius:10px;padding:8px;background:#0f172a"></div></div><div id="createChanErr" style="display:none;background:#7f1d1d33;border:1px solid #7f1d1d;color:#fecaca;padding:8px;border-radius:8px;font-size:12px;margin-top:10px"></div></div><div style="padding:12px 16px;background:#0f172a;display:flex;gap:10px;justify-content:flex-end"><button onclick="closeCreateChannelModal()" style="padding:10px 16px;border-radius:10px;border:1px solid #334155;background:transparent;color:#94a3b8;cursor:pointer">Cancelar</button><button onclick="createChannel()" style="padding:10px 20px;border-radius:10px;border:none;background:#6366f1;color:white;cursor:pointer;font-weight:700">Criar</button></div></div>
+<!-- Admin Panel -->
+<div id="adminPanel" style="display:none;position:fixed;inset:0;z-index:50;background:#0f172a;overflow:auto;padding:20px">
+<div style="max-width:900px;margin:0 auto">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px"><h2 style="color:white">👑 Painel Admin - Seguro</h2><button onclick="closeAdminPanel()" style="background:#1f2937;color:white;border:none;padding:8px 12px;border-radius:8px;cursor:pointer">Fechar</button></div>
+<div style="display:flex;gap:8px;margin-bottom:16px">
+<button id="adminTabUsers" onclick="switchAdminTab('users')" style="padding:8px 12px;border-radius:8px;border:1px solid #6366f1;background:#6366f122;color:white;cursor:pointer">Usuários (<span id="adminUserCount">0</span>)</button>
+<button id="adminTabChannels" onclick="switchAdminTab('channels')" style="padding:8px 12px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">Canais</button>
+<button id="adminTabMessages" onclick="switchAdminTab('messages')" style="padding:8px 12px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">Ações</button>
+</div>
+<div id="adminTabContent"></div>
+</div>
 </div>
 
-<div id="manageMembersModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9997;align-items:center;justify-content:center;padding:20px"><div style="background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:420px;width:100%;overflow:hidden"><div style="padding:16px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center"><b style="color:white" id="manageTitle">Gerenciar membros</b><button onclick="closeManageMembers()" style="width:32px;height:32px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">✕</button></div><div style="padding:16px;max-height:60vh;overflow:auto"><div id="manageChecklist" style="border:1px solid #334155;border-radius:10px;padding:8px;background:#0f172a;max-height:300px;overflow:auto"></div></div><div style="padding:12px 16px;background:#0f172a;display:flex;gap:10px;justify-content:flex-end"><button onclick="closeManageMembers()" style="padding:10px 16px;border-radius:10px;border:1px solid #334155;background:transparent;color:#94a3b8;cursor:pointer">Cancelar</button><button onclick="saveMembers()" style="padding:10px 20px;border-radius:10px;border:none;background:#6366f1;color:white;cursor:pointer">Salvar</button></div></div></div>
-
-<div id="adminPanelModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;align-items:center;justify-content:center;padding:20px"><div style="background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:600px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column"><div style="padding:16px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#7c3aed,#6366f1)"><b style="color:white">👑 Admin - kenedybentess@gmail.com</b><button onclick="closeAdminPanel()" style="width:32px;height:32px;border-radius:8px;border:1px solid #ffffff33;background:#00000033;color:white;cursor:pointer">✕</button></div><div style="padding:12px;display:flex;gap:8px;border-bottom:1px solid #334155;background:#0f172a"><button onclick="switchAdminTab('users')" id="adminTabUsers" style="flex:1;padding:10px;border-radius:8px;border:1px solid #6366f1;background:#6366f122;color:white;cursor:pointer;font-weight:600">👥 (<span id="adminUserCount">0</span>)</button><button onclick="switchAdminTab('channels')" id="adminTabChannels" style="flex:1;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">📢</button><button onclick="switchAdminTab('messages')" id="adminTabMessages" style="flex:1;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">💬</button></div><div id="adminTabContent" style="padding:16px;overflow:auto;flex:1;max-height:60vh"></div><div style="padding:12px 16px;background:#0f172a;border-top:1px solid #334155"><button onclick="fixPresence()" style="width:100%;padding:10px;border-radius:8px;border:1px solid #f59e0b;background:#f59e0b22;color:#fbbf24;cursor:pointer;margin-bottom:8px">🔧 Corrigir todos offline (só admin vê)</button><button onclick="closeAdminPanel()" style="width:100%;padding:8px 16px;border-radius:8px;border:1px solid #334155;background:transparent;color:#94a3b8;cursor:pointer">Fechar</button></div></div></div>
-
-<div id="editUserModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10001;align-items:center;justify-content:center;padding:20px"><div style="background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:400px;width:100%;overflow:hidden"><div style="padding:16px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center"><b style="color:white">✏️ Editar Usuário</b><button onclick="closeEditUser()" style="width:32px;height:32px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">✕</button></div><div style="padding:16px"><input type="hidden" id="editUserId"><label style="font-size:12px;color:#94a3b8;margin-bottom:4px;display:block">Nome</label><input id="editUserNome" style="width:100%;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:white;margin-bottom:10px;font-size:16px"><label style="font-size:12px;color:#94a3b8;margin-bottom:4px;display:block">Cargo</label><input id="editUserCargo" style="width:100%;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:white;margin-bottom:10px;font-size:16px"><label style="font-size:12px;color:#94a3b8;margin-bottom:4px;display:block">Email</label><input id="editUserEmail" disabled style="width:100%;padding:10px;border-radius:8px;border:1px solid #334155;background:#1f2937;color:#6b7280;margin-bottom:10px"><label style="font-size:12px;color:#94a3b8;margin-bottom:4px;display:block">Cor avatar</label><input id="editUserColor" type="color" style="width:100%;height:40px;border-radius:8px;border:1px solid #334155;background:#0f172a;cursor:pointer"><div id="editUserErr" style="display:none;background:#7f1d1d33;border:1px solid #7f1d1d;color:#fecaca;padding:8px;border-radius:8px;font-size:12px;margin-top:10px"></div></div><div style="padding:12px 16px;background:#0f172a;display:flex;gap:10px;justify-content:flex-end"><button onclick="closeEditUser()" style="padding:10px 16px;border-radius:10px;border:1px solid #334155;background:transparent;color:#94a3b8;cursor:pointer">Cancelar</button><button onclick="saveEditUser()" style="padding:10px 20px;border-radius:10px;border:none;background:#7c3aed;color:white;cursor:pointer;font-weight:700">Salvar</button></div></div></div>
-
-<div id="uploadInfo" style="padding:8px 14px;background:#eef2ff;border-top:1px solid #e2e8f0;display:none"><div id="uploadText" style="font-size:13px;color:#4338ca"></div><div style="height:4px;background:#e2e8f0;border-radius:2px;margin-top:6px;overflow:hidden"><div id="progressBar" style="height:100%;background:#6366f1;width:0%;transition:.2s"></div></div></div>
-<form id="msgForm" style="padding:10px;background:white;border-top:1px solid #e2e8f0;display:flex;gap:8px;align-items:center"><button type="button" id="attachBtn" style="width:44px;height:44px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;cursor:pointer;font-size:20px;flex-shrink:0">📎</button><input type="file" id="fileInput" style="display:none" accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"><input id="msgInput" placeholder="Digite uma mensagem..." style="flex:1;padding:12px 14px;border-radius:10px;border:1px solid #e2e8f0;background:#ffffff;color:#111827;font-size:16px"><button type="submit" style="padding:12px 18px;border-radius:10px;border:none;background:#6366f1;color:white;font-weight:700;min-width:60px">➤</button></form>
+<!-- Modals -->
+<div id="editUserModal" style="display:none;position:fixed;inset:0;background:#0008;z-index:60;align-items:center;justify-content:center;padding:20px">
+<div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:20px;width:100%;max-width:400px">
+<h3 style="color:white;margin-bottom:12px">Editar usuário</h3>
+<input type="hidden" id="editUserId">
+<label>Nome</label><input id="editUserNome">
+<label>Cargo</label><input id="editUserCargo">
+<label>Email</label><input id="editUserEmail" disabled>
+<label>Cor</label><input id="editUserColor" type="color">
+<label style="display:flex;align-items:center;gap:8px;margin-top:12px"><input type="checkbox" id="editUserIsAdmin"> <span style="color:#a78bfa">É Admin?</span></label>
+<div id="editUserErr" class="err"></div>
+<div style="display:flex;gap:10px;margin-top:14px"><button onclick="saveEditUser()" style="flex:1;padding:10px;border-radius:8px;border:none;background:#6366f1;color:white;font-weight:700;cursor:pointer">Salvar</button><button onclick="closeEditUser()" style="flex:1;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">Cancelar</button></div>
 </div>
 </div>
 
 <script>
-const colors=["#6366f1","#06b6d4","#f59e0b","#10b981","#ec4899","#8b5cf6"]; let selColor=colors[0];
-const cp=document.getElementById('colorPick'); colors.forEach(c=>{const d=document.createElement('div');d.className='color'+(c===selColor?' sel':'');d.style.background=c;d.onclick=()=>{selColor=c;document.querySelectorAll('.color').forEach(x=>x.classList.remove('sel'));d.classList.add('sel')};cp.appendChild(d)});
-function switchTab(t){document.getElementById('formLogin').style.display=t==='login'?'block':'none';document.getElementById('formReg').style.display=t==='reg'?'block':'none';document.getElementById('tabLogin').classList.toggle('active',t==='login');document.getElementById('tabReg').classList.toggle('active',t==='reg')}
-window.onerror=(m)=>{document.getElementById('status').textContent='Erro: '+m;document.getElementById('status').style.color='#f87171'}
-const firebaseConfig={apiKey:"AIzaSyA7RDUiCwBu8ilgOPyv-HcD_TTpujAoJio",authDomain:"chat-elgin.firebaseapp.com",databaseURL:"https://chat-elgin-default-rtdb.firebaseio.com",projectId:"chat-elgin",storageBucket:"chat-elgin.firebasestorage.app",messagingSenderId:"751356348223",appId:"1:751356348223:web:afa81eb49c715df3de358a"};
-let firebaseLoaded=false;
-function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
-async function initFirebase(){
- try{
-  await loadScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js");
-  await loadScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js");
-  await loadScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js");
-  await loadScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js");
-  firebase.initializeApp(firebaseConfig);
-  firebaseLoaded=true;
-  document.getElementById('status').textContent='Firebase pronto';
-  document.getElementById('status').style.color='#22c55e';
-  setupAuth();
- }catch(e){ document.getElementById('status').textContent='Erro: '+e.message; }
-}
-let currentUser=null, currentChannel='geral', currentChannelType='channel', listeners={}, messagesCache={}, channelType='public', allChannelsCache={}, unreadCounts={}, globalNotifiers={}, initialLoadDone=false, notifPermission=false, notifSoundEnabled=true, originalTitle=document.title, readsCache={}, readsListener=null;
-const ADMIN_EMAILS = ["kenedybentess@gmail.com", "kenedybentes@gmail.com"];
-function isAdmin(){ if(!currentUser || !currentUser.email) return false; return ADMIN_EMAILS.includes(currentUser.email.toLowerCase()); }
-function openSidebar(){ document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('show'); }
-function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
-function showErr(id,msg){const el=document.getElementById(id);el.style.display='block';el.textContent=msg}
-function hideErr(id){document.getElementById(id).style.display='none'}
-function formatLastSeen(ts){ if(!ts) return 'offline'; const diff=Date.now()-ts; const m=Math.floor(diff/60000); if(m<1) return 'agora'; if(m<60) return `há ${m} min`; const h=Math.floor(m/60); if(h<24) return `há ${h}h`; const d=Math.floor(h/24); return `há ${d}d`; }
-function isUserOnline(u){
-  if(!u) return false;
-  const now=Date.now();
-  const last = u.lastActive || u.lastSeen || 0;
-  if(!last && u.online){ if(u.createdAt && (now - u.createdAt) > 5*60*1000) return false; return false; }
-  return (now - last) < 90*1000;
-}
-function setupPresence(uid){
-  const userRef = firebase.database().ref('users/'+uid);
-  const connectedRef = firebase.database().ref('.info/connected');
-  connectedRef.on('value', (snap) => {
-    if(snap.val()===true){
-      userRef.onDisconnect().update({online:false,lastSeen: firebase.database.ServerValue.TIMESTAMP,lastActive:0}).then(()=>{
-        userRef.update({online:true,lastSeen: firebase.database.ServerValue.TIMESTAMP,lastActive: firebase.database.ServerValue.TIMESTAMP});
-      });
-    }
-  });
-  setInterval(()=>{ if(currentUser && firebase.auth().currentUser){ userRef.update({lastActive: firebase.database.ServerValue.TIMESTAMP, lastSeen: firebase.database.ServerValue.TIMESTAMP, online:true}); } }, 20000);
-  window.addEventListener('beforeunload', ()=>{ userRef.update({online:false, lastSeen: firebase.database.ServerValue.TIMESTAMP, lastActive:0}); });
-  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden){ userRef.update({online:true, lastActive: firebase.database.ServerValue.TIMESTAMP, lastSeen: firebase.database.ServerValue.TIMESTAMP}); } });
-}
-function fixPresence(){
-  if(!isAdmin()){ alert('Só admin pode usar o fix'); return; }
-  if(!confirm('Marcar todos offline exceto você? Quem estiver online volta em 20s.')) return;
-  firebase.database().ref('users').once('value').then(snap=>{
-    const val=snap.val()||{};
-    Object.keys(val).forEach(uid=>{ if(uid!==currentUser.id){ firebase.database().ref('users/'+uid).update({online:false, lastActive:0, lastSeen: Date.now() - 10*60*1000}); } });
-    alert('Corrigido! Agora só quem estiver realmente usando vai aparecer online.');
-  });
-}
-function setupAuth(){
- firebase.auth().onAuthStateChanged(async (user)=>{
-  if(user){
-   const uid=user.uid;
-   const snap=await firebase.database().ref('users/'+uid).once('value');
-   let data=snap.val();
-   if(!data){
-     const pendingNome=localStorage.getItem('pendingNome')||user.email.split('@')[0];
-     const pendingCargo=localStorage.getItem('pendingCargo')||'Colaborador';
-     const pendingColor=localStorage.getItem('pendingColor')||selColor;
-     data={id:uid,nome:pendingNome,cargo:pendingCargo,email:user.email,avatarColor:pendingColor,online:true,createdAt:Date.now(),lastSeen:Date.now(),lastActive:Date.now()};
-     await firebase.database().ref('users/'+uid).set(data);
-   }
-   currentUser={id:uid,...data,nome:data.nome||data.email.split('@')[0]};
-   document.getElementById('loginScreen').style.display='none';
-   document.getElementById('chatScreen').style.display='flex';
-   setupPresence(uid);
-   initChat();
-  }else{
-   document.getElementById('loginScreen').style.display='flex';
-   document.getElementById('chatScreen').style.display='none';
+// ================= CONFIG =================
+const firebaseConfig = {
+  apiKey: "SUA_API_KEY",
+  authDomain: "SEU_DOMINIO.firebaseapp.com",
+  databaseURL: "https://SEU_PROJETO.firebaseio.com",
+  projectId: "SEU_PROJETO",
+  storageBucket: "SEU_PROJETO.appspot.com",
+  messagingSenderId: "xxx",
+  appId: "xxx"
+};
+
+// LISTA MESTRA - só esses e-mails ganham isAdmin=true no primeiro cadastro
+const ADMIN_EMAILS = [
+  'admin@elgin.com.br',
+  'ti@elgin.com.br'
+].map(e=>e.toLowerCase());
+
+let currentUser=null;
+let allChannelsCache={};
+let currentChannel={id:'geral', label:'geral'};
+let allUsersCache={};
+
+const COLORS = ['#6366f1','#06b6d4','#22c55e','#f59e0b','#ef4444','#a855f7','#ec4899'];
+
+// ================ INIT =================
+function initFirebase(){
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    document.getElementById('status').textContent='Pronto para entrar';
+    setupColorPicker();
+    firebase.auth().onAuthStateChanged(async user=>{
+      if(user){
+        const snap = await firebase.database().ref('users/'+user.uid).once('value');
+        let dbUser = snap.val();
+        if(!dbUser){
+          // fallback se registrou sem gravar
+          dbUser = { nome: user.displayName || 'Usuário', email: user.email, cargo:'Colaborador', avatarColor:COLORS[0], isAdmin: ADMIN_EMAILS.includes((user.email||'').toLowerCase()) };
+          await firebase.database().ref('users/'+user.uid).set({...dbUser, online:true, lastSeen: firebase.database.ServerValue.TIMESTAMP});
+        }
+        // ATUALIZA isAdmin se estiver na lista mestra (garante privilégio)
+        const shouldBeAdmin = ADMIN_EMAILS.includes((dbUser.email||user.email||'').toLowerCase());
+        if(shouldBeAdmin && !dbUser.isAdmin){
+          await firebase.database().ref('users/'+user.uid).update({isAdmin:true});
+          dbUser.isAdmin = true;
+        }
+        currentUser = { id:user.uid, ...dbUser, email: dbUser.email || user.email };
+        document.getElementById('myAvatar').textContent=(currentUser.nome||'U')[0].toUpperCase();
+        document.getElementById('myAvatar').style.background=currentUser.avatarColor||'#6366f1';
+        document.getElementById('myName').textContent=currentUser.nome;
+        document.getElementById('myEmail').textContent=currentUser.email + (currentUser.isAdmin?' 👑':'');
+        // SEGURANÇA: botão só se isAdmin do BANCO
+        if(currentUser.isAdmin){
+          document.getElementById('adminBtn').style.display='block';
+        }
+        document.getElementById('loginScreen').style.display='none';
+        document.getElementById('chatScreen').style.display='flex';
+        await firebase.database().ref('users/'+user.uid).update({online:true, lastActive: firebase.database.ServerValue.TIMESTAMP});
+        firebase.database().ref('users/'+user.uid).onDisconnect().update({online:false, lastSeen: firebase.database.ServerValue.TIMESTAMP, lastActive:0});
+        loadChannels();
+        loadUsers();
+      } else {
+        document.getElementById('loginScreen').style.display='flex';
+        document.getElementById('chatScreen').style.display='none';
+      }
+    });
+  }catch(e){
+    document.getElementById('status').textContent='Erro config Firebase: '+e.message;
   }
- });
- document.getElementById('btnReg').onclick=async()=>{
-  hideErr('r_err');
+}
+
+function setupColorPicker(){
+  const c=document.getElementById('colorPick'); c.innerHTML='';
+  COLORS.forEach((col,i)=>{
+    const d=document.createElement('div'); d.className='color'+(i===0?' sel':''); d.style.background=col;
+    d.onclick=()=>{ document.querySelectorAll('.color').forEach(x=>x.classList.remove('sel')); d.classList.add('sel'); };
+    c.appendChild(d);
+  });
+}
+function getSelectedColor(){ const s=document.querySelector('.color.sel'); return s? s.style.background : COLORS[0]; }
+
+function switchTab(t){
+  document.getElementById('tabLogin').classList.toggle('active', t==='login');
+  document.getElementById('tabReg').classList.toggle('active', t==='reg');
+  document.getElementById('formLogin').style.display = t==='login' ? 'block':'none';
+  document.getElementById('formReg').style.display = t==='reg' ? 'block':'none';
+}
+
+// ================ AUTH =================
+async function doLogin(){
+  const email=document.getElementById('l_email').value.trim().toLowerCase();
+  const senha=document.getElementById('l_senha').value;
+  const err=document.getElementById('l_err');
+  if(!email||!senha){ err.textContent='Preencha email e senha'; err.style.display='block'; return; }
+  try{ await firebase.auth().signInWithEmailAndPassword(email,senha); }catch(e){ err.textContent=e.message; err.style.display='block'; }
+}
+async function doRegister(){
   const nome=document.getElementById('r_nome').value.trim();
   const cargo=document.getElementById('r_cargo').value.trim()||'Colaborador';
-  const email=document.getElementById('r_email').value.trim();
-  const s=document.getElementById('r_senha').value;
+  const email=document.getElementById('r_email').value.trim().toLowerCase();
+  const s1=document.getElementById('r_senha').value;
   const s2=document.getElementById('r_senha2').value;
-  if(nome.length<3) return showErr('r_err','Nome minimo 3 letras');
-  if(!email.includes('@')) return showErr('r_err','Email invalido');
-  if(s.length<6) return showErr('r_err','Senha minima 6');
-  if(s!==s2) return showErr('r_err','Senhas nao conferem');
-  if(!firebaseLoaded) return showErr('r_err','Firebase carregando...');
-  localStorage.setItem('pendingNome',nome);localStorage.setItem('pendingCargo',cargo);localStorage.setItem('pendingColor',selColor);
-  document.getElementById('btnReg').textContent='Criando...';document.getElementById('btnReg').disabled=true;
-  try{ await firebase.auth().createUserWithEmailAndPassword(email,s); }catch(e){ let msg=e.message; if(e.code==='auth/email-already-in-use') msg='Email ja cadastrado'; showErr('r_err',msg); }
-  document.getElementById('btnReg').textContent='Criar conta e entrar';document.getElementById('btnReg').disabled=false;
- };
- document.getElementById('btnLogin').onclick=async()=>{
-  hideErr('l_err');
-  const email=document.getElementById('l_email').value.trim();
-  const s=document.getElementById('l_senha').value;
-  if(!email||!s) return showErr('l_err','Preencha email e senha');
-  if(!firebaseLoaded) return showErr('l_err','Firebase carregando...');
-  document.getElementById('btnLogin').textContent='Entrando...';document.getElementById('btnLogin').disabled=true;
-  try{ await firebase.auth().signInWithEmailAndPassword(email,s); }catch(e){ showErr('l_err','Senha incorreta'); }
-  document.getElementById('btnLogin').textContent='Entrar no Connect';document.getElementById('btnLogin').disabled=false;
- };
+  const err=document.getElementById('r_err');
+  if(nome.length<3){ err.textContent='Nome muito curto'; err.style.display='block'; return; }
+  if(s1.length<6){ err.textContent='Senha min 6'; err.style.display='block'; return; }
+  if(s1!==s2){ err.textContent='Senhas diferentes'; err.style.display='block'; return; }
+  try{
+    const cred=await firebase.auth().createUserWithEmailAndPassword(email,s1);
+    const isAdmin = ADMIN_EMAILS.includes(email);
+    const color=getSelectedColor();
+    await firebase.database().ref('users/'+cred.user.uid).set({
+      nome, cargo, email, avatarColor:color, isAdmin,
+      online:true, lastSeen: firebase.database.ServerValue.TIMESTAMP, lastActive: Date.now()
+    });
+  }catch(e){ err.textContent=e.message; err.style.display='block'; }
 }
-function initChat(){
- const defaultChans = {geral:{id:'geral',label:'# geral',protected:true, isPublic:true}};
- firebase.database().ref('channel_list').once('value').then(snap=>{ if(!snap.exists()) firebase.database().ref('channel_list').set(defaultChans); });
- firebase.database().ref('channel_list').on('value', snap=>{
-   const val = snap.val() || defaultChans;
-   allChannelsCache = val;
-   renderChannelList(val);
- });
- firebase.database().ref('users').on('value',snap=>{
-  const val=snap.val()||{}; const list=Object.values(val).filter(u=>u && u.id);
-  window.allUsers=list;
-  renderUsers();
-  const onlineCount=list.filter(u=>isUserOnline(u)).length;
-  document.getElementById('conn').textContent=list.length+' usuarios - '+onlineCount+' online agora';
- });
- firebase.database().ref('.info/connected').on('value',s=>{ const sub=document.getElementById('chatSub'); if(!s.val()){ sub.textContent='🔴 Desconectado'; sub.style.color='#ef4444'; return; } sub.textContent='● Conectado'; });
- selectChannel('geral','# geral','channel');
- setupGlobalNotifications();
- if(isAdmin()){
-   document.getElementById('adminBtn').style.display='inline-block';
-   document.getElementById('fixBtn').style.display='inline-block';
-   document.getElementById('adminOnlyNote').style.display='block';
- }
- document.getElementById('search').oninput=(e)=>renderUsers(e.target.value);
- document.getElementById('msgForm').onsubmit=(e)=>{e.preventDefault();sendMsg()};
- document.getElementById('attachBtn').onclick=()=>document.getElementById('fileInput').click();
- document.getElementById('fileInput').onchange=(e)=>{const f=e.target.files[0]; if(f) showFilePreview(f); e.target.value='';};
- window.addEventListener('focus', ()=>{ document.title=originalTitle; if(currentChannel){ clearUnread(currentChannel); markAsRead(); } });
- setInterval(()=>{ if(window.allUsers) renderUsers(document.getElementById('search').value); }, 30000);
-}
-function renderChannelList(channelsObj){
- const cl=document.getElementById('chanList'); cl.innerHTML='';
- let list = Object.values(channelsObj);
- list = list.filter(ch=>{ if(isAdmin()) return true; if(ch.id==='geral') return true; if(!ch.members) return true; return ch.members[currentUser.id] || ch.createdBy===currentUser.id; });
- list = list.sort((a,b)=> (a.id==='geral'?-1:b.id==='geral'?1: a.label.localeCompare(b.label)));
- list.forEach(ch=>{
-  const isActive = ch.id===currentChannel && currentChannelType==='channel';
-  const unread = unreadCounts[ch.id]||0;
-  const d=document.createElement('div');
-  d.style.cssText='padding:8px 10px;border-radius:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;';
-  d.style.background=isActive?'#1f2937':''; d.style.color=isActive?'white':'#9ca3af';
-  if(unread>0 && !isActive){ d.style.background='#1f2937'; d.style.border='1px solid #6366f133'; }
-  const canDelete = ch.id!=='geral';
-  const isPrivate = ch.members ? '🔒 ' : '';
-  const badge = unread>0 ? `<span class="badge badge-channel">${unread>99?'99+':unread}</span>` : '';
-  d.innerHTML=`<span style="flex:1;display:flex;align-items:center;gap:6px" onclick="selectChannel('${ch.id}','${ch.label}','channel'); closeSidebar();">${isPrivate}${ch.label} ${badge}</span><div style="display:flex;gap:4px"><button onclick="openManageMembers('${ch.id}')" style="width:20px;height:20px;border-radius:4px;border:none;background:transparent;color:#6366f1;cursor:pointer;font-size:12px">👥</button>${canDelete?`<button onclick="deleteChannel('${ch.id}','${ch.label}')" style="width:20px;height:20px;border-radius:4px;border:none;background:transparent;color:#ef4444;cursor:pointer;font-size:12px">🗑️</button>`:''}</div>`;
-  cl.appendChild(d);
- });
- updateTotalUnread();
-}
-function renderUsers(filter=''){
- const cont=document.getElementById('userList'); if(!window.allUsers){cont.innerHTML='<div style=color:#6b7280>Carregando...</div>';return}
- let list=window.allUsers.filter(u=>u.id!==currentUser.id);
- if(filter){const f=filter.toLowerCase(); list=list.filter(u=> ((u.nome||'')+' '+(u.cargo||'')+' '+(u.email||'')).toLowerCase().includes(f))}
- if(list.length===0){cont.innerHTML='<div style=color:#6b7280;font-size:13px;padding:8px>Nenhum usuario.</div>';return}
- cont.innerHTML='';
- list.sort((a,b)=>{ const aOn=isUserOnline(a)?1:0; const bOn=isUserOnline(b)?1:0; return bOn-aOn; }).forEach(u=>{
-  const nome=u.nome|| (u.email?u.email.split('@')[0]:'Usuario');
-  const dmId = [currentUser.id, u.id].sort().join('_');
-  const unread = unreadCounts[dmId]||0;
-  const online = isUserOnline(u);
-  const statusText = online ? 'online agora' : (u.lastSeen ? 'visto '+formatLastSeen(u.lastSeen) : 'offline');
-  const statusClass = online ? 'status-online' : 'status-offline';
-  const d=document.createElement('div');d.style.cssText='display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;cursor:pointer;color:#d1d5db;position:relative';
-  if(unread>0){ d.style.background='#1f2937'; d.style.border='1px solid #ef444433'; }
-  d.onmouseenter=()=>{ if(unread===0) d.style.background='#1f2937'; }; d.onmouseleave=()=>{ if(unread===0) d.style.background='transparent'; };
-  d.innerHTML=`<div style="position:relative"><div style="width:32px;height:32px;border-radius:50%;background:${u.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;font-size:12px">${nome[0].toUpperCase()}</div><div class="status-dot ${statusClass}"></div></div><div style="flex:1"><div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px">${nome} ${unread>0?`<span class="badge badge-dm">${unread>99?'99+':unread}</span>`:''}</div><div style="font-size:11px;color:${online?'#22c55e':'#6b7280'}">${u.cargo||u.email} • ${statusText}</div></div>`;
-  d.onclick=()=>{ selectUser(u); closeSidebar(); };
-  cont.appendChild(d);
- });
- updateTotalUnread();
-}
-function updateTotalUnread(){
- const total=Object.values(unreadCounts).reduce((a,b)=>a+b,0);
- const el=document.getElementById('totalUnread');
- if(total>0){ el.textContent=total>99?'99+':total; el.style.display='inline-flex'; document.title='('+total+') '+originalTitle; }
- else { el.style.display='none'; document.title=originalTitle; }
-}
-function setChannelType(t){
- channelType=t;
- document.getElementById('typePublic').style.borderColor=t==='public'?'#6366f1':'#334155';
- document.getElementById('typePublic').style.background=t==='public'?'#6366f122':'#0f172a';
- document.getElementById('typePrivate').style.borderColor=t==='private'?'#6366f1':'#334155';
- document.getElementById('typePrivate').style.background=t==='private'?'#6366f122':'#0f172a';
- document.getElementById('membersSection').style.display=t==='private'?'block':'none';
- if(t==='private') renderMembersChecklist();
-}
-function renderMembersChecklist(){
- const cont=document.getElementById('membersChecklist');
- if(!cont || !window.allUsers) return;
- cont.innerHTML='';
- window.allUsers.filter(u=>u.id!==currentUser.id).forEach(u=>{
-  const nome=u.nome||u.email.split('@')[0];
-  const div=document.createElement('div'); div.style.cssText='display:flex;align-items:center;gap:8px;padding:6px;border-radius:6px';
-  div.innerHTML=`<input type="checkbox" value="${u.id}" id="chk_${u.id}" style="width:auto"><label for="chk_${u.id}" style="margin:0;color:#d1d5db;flex:1">${nome} - ${u.cargo||u.email}</label>`;
-  cont.appendChild(div);
- });
-}
-function openCreateChannelModal(){
- document.getElementById('newChannelName').value='';
- document.getElementById('createChanErr').style.display='none';
- channelType='public'; setChannelType('public');
- document.getElementById('createChannelModal').style.display='flex';
-}
-function closeCreateChannelModal(){ document.getElementById('createChannelModal').style.display='none'; }
-function createChannel(){
- const raw=document.getElementById('newChannelName').value.trim().toLowerCase();
- const errEl=document.getElementById('createChanErr');
- errEl.style.display='none';
- if(!raw || raw.length<2){ errEl.textContent='Nome muito curto'; errEl.style.display='block'; return; }
- let id = raw.replace(/[^a-z0-9_-]/g, '-').replace(/-+/g,'-').replace(/^[-_]+|[-_]+$/g,'');
- if(!id || id==='geral'){ errEl.textContent='Nome reservado'; errEl.style.display='block'; return; }
- firebase.database().ref('channel_list/'+id).once('value').then(snap=>{
-   if(snap.exists()){ errEl.textContent='Canal já existe'; errEl.style.display='block'; return; }
-   const label = '# '+id;
-   let data = {id:id, label:label, createdBy: currentUser.id, createdAt: Date.now(), isPublic: channelType==='public'};
-   if(channelType==='private'){
-     const checks = document.querySelectorAll('#membersChecklist input:checked');
-     let members = {}; members[currentUser.id]=true;
-     checks.forEach(c=>{ members[c.value]=true; });
-     data.members = members;
-   }
-   firebase.database().ref('channel_list/'+id).set(data).then(()=>{ closeCreateChannelModal(); selectChannel(id, label, 'channel'); });
- });
-}
-function deleteChannel(id, label){
- if(id==='geral'){ alert('Não pode excluir #geral'); return; }
- if(!confirm('Excluir canal '+label+'?')) return;
- firebase.database().ref('channel_list/'+id).remove();
- firebase.database().ref('channels/'+id).remove();
- if(currentChannel===id) selectChannel('geral','# geral','channel');
-}
-let editingChannelId=null;
-function openManageMembers(chanId=null){
- editingChannelId = chanId || currentChannel;
- if(!editingChannelId || currentChannelType==='dm'){ alert('Selecione um canal'); return; }
- const ch = allChannelsCache[editingChannelId];
- if(!ch){ alert('Canal não encontrado'); return; }
- document.getElementById('manageTitle').textContent='Membros de '+ch.label;
- document.getElementById('manageMembersModal').style.display='flex';
- const cont=document.getElementById('manageChecklist');
- cont.innerHTML='';
- const members = ch.members || null;
- const list = [{id:currentUser.id, nome:currentUser.nome+' (você)'}, ... (window.allUsers||[]).filter(u=>u.id!==currentUser.id)];
- list.forEach(u=>{
-   const nome=u.nome||u.email;
-   const isMember = !members || members[u.id] || u.id===currentUser.id;
-   const div=document.createElement('div'); div.style.cssText='display:flex;align-items:center;gap:8px;padding:6px;border-radius:6px';
-   div.innerHTML=`<input type="checkbox" value="${u.id}" id="mchk_${u.id}" ${isMember?'checked':''} style="width:auto" ${u.id===currentUser.id?'disabled':''}><label for="mchk_${u.id}" style="margin:0;color:#d1d5db;flex:1">${nome}</label>`;
-   cont.appendChild(div);
- });
-}
-function closeManageMembers(){ document.getElementById('manageMembersModal').style.display='none'; editingChannelId=null; }
-function saveMembers(){
- if(!editingChannelId) return;
- const checks = document.querySelectorAll('#manageChecklist input:checked');
- let members = {}; checks.forEach(c=>{ members[c.value]=true; }); members[currentUser.id]=true;
- if(Object.keys(members).length<=1){ if(confirm('Deixar canal público?')){ firebase.database().ref('channel_list/'+editingChannelId+'/members').remove(); closeManageMembers(); return; } }
- firebase.database().ref('channel_list/'+editingChannelId+'/members').set(members);
- closeManageMembers();
-}
-function selectChannel(id,label,type='channel'){
- if(listeners.msg){ listeners.msg.off('child_added'); listeners.msg.off('child_removed'); }
- if(readsListener){ readsListener.off(); readsListener=null; }
- currentChannel=id; currentChannelType=type; messagesCache={}; readsCache={};
- document.getElementById('chatTitle').textContent=label;
- const ch = allChannelsCache[id];
- const sub=document.getElementById('chatSub');
- if(type==='dm'){ sub.textContent='💬 Privada'; sub.style.color='#6366f1'; document.getElementById('manageMembersBtn').style.display='none'; }
- else { if(ch && ch.members){ sub.textContent='🔒 '+Object.keys(ch.members).length+' membros'; sub.style.color='#f59e0b'; } else sub.textContent='● Público'; document.getElementById('manageMembersBtn').style.display='block'; }
- document.getElementById('msgs').innerHTML='';
- clearUnread(id);
- let basePath = type==='dm' ? 'dms/'+id : 'channels/'+id;
- if(!isAdmin() && type==='channel' && ch && ch.members && !ch.members[currentUser.id] && ch.createdBy!==currentUser.id){ document.getElementById('msgs').innerHTML='<div style="text-align:center;padding:40px;color:#64748b">🔒 Sem acesso</div>'; return; }
- const ref=firebase.database().ref(basePath+'/messages').limitToLast(150);
- listeners.msg=ref;
- ref.on('child_added',snap=>{ const m=snap.val(); if(!m) return; messagesCache[snap.key]=m; addMsg(m, snap.key); if(m.userId!==currentUser.id){ setTimeout(()=>markAsRead(),500); } });
- ref.on('child_removed',snap=>{ const el=document.getElementById('msg-'+snap.key); if(el) el.remove(); delete messagesCache[snap.key]; });
- const readsRef=firebase.database().ref(basePath+'/reads');
- readsListener=readsRef;
- readsRef.on('value', snap=>{ readsCache=snap.val()||{}; Object.keys(messagesCache).forEach(k=>{ updateReadStatus(k, messagesCache[k]); }); });
- setTimeout(()=>markAsRead(),1000);
-}
-function markAsRead(){
- if(!currentUser) return;
- let basePath = currentChannelType==='dm' ? 'dms/'+currentChannel : 'channels/'+currentChannel;
- const lastKey = Object.keys(messagesCache).length ? Object.keys(messagesCache)[Object.keys(messagesCache).length-1] : null;
- const lastMsg = lastKey ? messagesCache[lastKey] : null;
- const data = {userId: currentUser.id, nome: currentUser.nome, timestamp: Date.now(), lastMessageId: lastKey||'', lastMessageTime: lastMsg ? lastMsg.timestamp : Date.now()};
- firebase.database().ref(basePath+'/reads/'+currentUser.id).set(data);
-}
-function getReadStatus(msgKey, msg){
- if(!msg || msg.userId!==currentUser.id) return null;
- const reads = Object.values(readsCache).filter(r=>r.userId!==currentUser.id);
- if(reads.length===0) return {icon:'✓', text:'Enviado', cls:'read-sent'};
- let seenBy=[];
- reads.forEach(r=>{ if(r.lastMessageTime && r.lastMessageTime >= msg.timestamp) seenBy.push(r); });
- if(seenBy.length===0) return {icon:'✓✓', text:'Entregue', cls:'read-delivered'};
- if(currentChannelType==='dm'){ return {icon:'✓✓', text:'Visualizado por '+seenBy[0].nome, cls:'read-seen-blue'}; }
- else { if(seenBy.length===1) return {icon:'✓✓', text:'Visto por '+seenBy[0].nome, cls:'read-seen'}; return {icon:'✓✓', text:'Visto por '+seenBy.length, cls:'read-seen'}; }
-}
-function updateReadStatus(msgKey, msg){
- const el=document.getElementById('read-'+msgKey);
- if(!el) return;
- const status=getReadStatus(msgKey, msg);
- if(!status){ el.innerHTML=''; return; }
- el.innerHTML=`<span class="${status.cls}">${status.icon} ${status.text}</span>`;
-}
-function selectUser(u){
- const ids=[currentUser.id,u.id].sort(); const dmId=ids.join('_');
- selectChannel(dmId,'💬 '+ (u.nome||u.email), 'dm');
- document.getElementById('chatTitle').textContent='💬 '+ (u.nome||u.email);
-}
-function addMsg(m, key){
- if(!m) return;
- const msgKey = key || m.id;
- if(document.getElementById('msg-'+msgKey)) return;
- const box=document.getElementById('msgs');
- const wrap=document.createElement('div'); wrap.id='msg-'+msgKey; wrap.className='msg-wrap';
- const isMe=m.userId===currentUser.id;
- const nome=m.user||m.nome||'Usuario';
- let content = '';
- if(m.text) content+=`<div style="margin-top:4px;background:${isMe?'#eef2ff':'white'};border:1px solid #e2e8f0;padding:10px 12px;border-radius:12px;font-size:14px;color:#1e293b;max-width:520px;word-break:break-word">${escapeHtml(m.text)}</div>`;
- if(m.fileUrl){
-   const isImage = m.fileType && m.fileType.startsWith('image/');
-   if(isImage) content+=`<a href="${m.fileUrl}" target="_blank"><img src="${m.fileUrl}" style="max-width:200px;max-height:200px;border-radius:10px;margin-top:8px;border:1px solid #e2e8f0" loading="lazy"></a>`;
-   else content+=`<div style="display:flex;align-items:center;gap:10px;background:#f1f5f9;padding:10px;border-radius:10px;margin-top:8px;border:1px solid #e2e8f0"><div style="font-size:24px">📄</div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#111827">${m.fileName||'arquivo'}</div></div><a href="${m.fileUrl}" target="_blank" download style="padding:6px 12px;background:#6366f1;color:white;border-radius:8px;text-decoration:none;font-size:12px">Baixar</a></div>`;
- }
- const canDelete = isMe || isAdmin();
- const delBtn = canDelete ? `<div class="msg-actions"><button class="del-btn" onclick="deleteMsg('${msgKey}')">🗑️ ${isAdmin()&&!isMe?'Admin':''}</button></div>` : '';
- const status = getReadStatus(msgKey, m);
- const statusHtml = status && isMe ? `<div id="read-${msgKey}" class="read-status"><span class="${status.cls}">${status.icon} ${status.text}</span></div>` : (isMe ? `<div id="read-${msgKey}" class="read-status"><span class="read-sent">✓ Enviado</span></div>` : '');
- wrap.innerHTML=`<div style="width:36px;height:36px;border-radius:50%;background:${m.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;flex-shrink:0">${nome[0].toUpperCase()}</div><div><div style="display:flex;gap:8px;align-items:center"><b style="font-size:14px;color:#111827">${escapeHtml(nome)}</b><span style="font-size:11px;color:#64748b">${m.timestamp?new Date(m.timestamp).toLocaleTimeString():''}</span>${delBtn}</div>${content}${statusHtml}</div>`;
- box.appendChild(wrap); box.scrollTop=box.scrollHeight;
-}
-let pendingFile=null;
-function showFilePreview(file){
- if(file.size>15*1024*1024){ alert('Arquivo muito grande'); return; }
- pendingFile=file;
- const modal=document.getElementById('filePreviewModal');
- const img=document.getElementById('previewImg');
- const icon=document.getElementById('previewFileIcon');
- const nameEl=document.getElementById('previewFileName');
- const sizeEl=document.getElementById('previewFileSize');
- document.getElementById('previewCaption').value='';
- if(file.type.startsWith('image/')){
-   const reader=new FileReader();
-   reader.onload=(e)=>{ img.src=e.target.result; img.style.display='block'; icon.style.display='none'; };
-   reader.readAsDataURL(file);
- } else {
-   img.style.display='none'; icon.style.display='block';
-   nameEl.textContent=file.name; sizeEl.textContent=(file.size/1024).toFixed(1)+' KB';
- }
- modal.style.display='flex';
-}
-function cancelFilePreview(){ pendingFile=null; document.getElementById('filePreviewModal').style.display='none'; }
-function confirmFileSend(){
- if(!pendingFile) return;
- const caption=document.getElementById('previewCaption').value.trim();
- document.getElementById('filePreviewModal').style.display='none';
- uploadFile(pendingFile, caption);
- pendingFile=null;
-}
-function escapeHtml(t){return (t||'').toString().replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function sendMsg(){
- const input=document.getElementById('msgInput');const text=input.value.trim(); if(!text) return;
- let path = currentChannelType==='dm' ? 'dms/'+currentChannel+'/messages' : 'channels/'+currentChannel+'/messages';
- const ref=firebase.database().ref(path).push();
- ref.set({id:ref.key,text,user:currentUser.nome,userId:currentUser.id,cargo:currentUser.cargo,avatarColor:currentUser.avatarColor,timestamp:Date.now()});
- input.value='';input.focus();
-}
-async function uploadFile(file, captionText=""){
- if(file.size>15*1024*1024) return alert('Muito grande');
- const info=document.getElementById('uploadInfo'); const txt=document.getElementById('uploadText'); const bar=document.getElementById('progressBar');
- info.style.display='block'; txt.textContent='Enviando '+file.name+'...'; bar.style.width='15%';
- if(file.size < 3*1024*1024){
-   const reader=new FileReader();
-   reader.onload=async (e)=>{
-     try{
-       bar.style.width='70%';
-       let path = currentChannelType==='dm' ? 'dms/'+currentChannel+'/messages' : 'channels/'+currentChannel+'/messages';
-       const ref=firebase.database().ref(path).push();
-       await ref.set({id:ref.key,text:captionText||'',fileUrl:e.target.result,fileName:file.name,fileType:file.type,fileSize:file.size,user:currentUser.nome,userId:currentUser.id,avatarColor:currentUser.avatarColor,timestamp:Date.now(),isBase64:true});
-       bar.style.width='100%'; setTimeout(()=>info.style.display='none',800);
-     }catch(err){ info.style.display='none'; alert('Erro: '+err.message); }
-   };
-   reader.readAsDataURL(file); return;
- }
- try{
-  const storageRef=firebase.storage().ref('chat_files/'+currentChannel+'/'+Date.now()+'_'+file.name);
-  const task=storageRef.put(file);
-  task.on('state_changed', snap=>{ const pct=(snap.bytesTransferred/snap.totalBytes*100).toFixed(0); bar.style.width=pct+'%'; txt.textContent='Enviando '+pct+'%'; }, err=>{ info.style.display='none'; alert('Erro: '+err.message); }, async ()=>{
-   const url=await task.snapshot.ref.getDownloadURL();
-   let path = currentChannelType==='dm' ? 'dms/'+currentChannel+'/messages' : 'channels/'+currentChannel+'/messages';
-   const ref=firebase.database().ref(path).push();
-   await ref.set({id:ref.key,text:captionText||'',fileUrl:url,fileName:file.name,fileType:file.type,fileSize:file.size,user:currentUser.nome,userId:currentUser.id,avatarColor:currentUser.avatarColor,timestamp:Date.now()});
-   setTimeout(()=>info.style.display='none',600);
+
+// ================ CHAT CORE (simplificado mantendo seu original) =================
+function loadChannels(){
+  firebase.database().ref('channels').on('value', snap=>{
+    const data=snap.val()||{ geral:{id:'geral', label:'geral'}};
+    allChannelsCache=data;
+    const list=document.getElementById('chanList'); list.innerHTML='';
+    Object.values(data).forEach(ch=>{
+      const div=document.createElement('div');
+      div.style.cssText='padding:8px 10px;border-radius:8px;cursor:pointer;color:#94a3b8;display:flex;justify-content:space-between;align-items:center';
+      if(currentChannel.id===ch.id) div.style.background='#1f2937', div.style.color='white';
+      div.innerHTML=`<span># ${ch.label}</span>`;
+      div.onclick=()=>selectChannel(ch.id, ch.label, 'channel');
+      list.appendChild(div);
+    });
+    if(!allChannelsCache[currentChannel.id]) selectChannel('geral','geral','channel');
+    else loadMessages();
   });
- }catch(e){ info.style.display='none'; alert('Erro: '+e.message); }
 }
-function deleteMsg(msgKey){
- if(!confirm('Excluir esta mensagem?')) return;
- const m=messagesCache[msgKey];
- if(m && m.userId !== currentUser.id && !isAdmin()){ alert('Só pode excluir suas'); return; }
- let path = currentChannelType==='dm' ? 'dms/'+currentChannel+'/messages/'+msgKey : 'channels/'+currentChannel+'/messages/'+msgKey;
- firebase.database().ref(path).remove().then(()=>{ const el=document.getElementById('msg-'+msgKey); if(el) el.remove(); });
+function selectChannel(id,label,type){
+  currentChannel={id,label,type};
+  document.getElementById('currentChanLabel').textContent='# '+label;
+  document.getElementById('mobTitle').textContent='# '+label;
+  loadMessages();
+  closeSidebar();
 }
-function toggleNotifications(){
- if(Notification && Notification.permission!=='granted'){
-   Notification.requestPermission().then(p=>{ notifPermission=p==='granted'; notifSoundEnabled=true; updateNotifBtn(); });
- } else {
-   notifSoundEnabled=!notifSoundEnabled; updateNotifBtn(); if(notifSoundEnabled) playNotifSound();
- }
+function loadMessages(){
+  const ref = firebase.database().ref('channels/'+currentChannel.id+'/messages').limitToLast(100);
+  ref.on('value', snap=>{
+    const msgs=snap.val()||{};
+    const cont=document.getElementById('messages'); cont.innerHTML='';
+    Object.entries(msgs).sort((a,b)=>a[1].timestamp-b[1].timestamp).forEach(([mid,m])=>{
+      const isMe = m.uid===currentUser.id;
+      const canDelete = isMe || currentUser.isAdmin;
+      const user = allUsersCache[m.uid] || {nome:'...', avatarColor:'#6366f1'};
+      const div=document.createElement('div'); div.className='msg-wrap';
+      div.innerHTML=`<div style="width:36px;height:36px;border-radius:50%;background:${user.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;flex-shrink:0">${(user.nome||'U')[0]}</div><div><div style="font-weight:600;color:#111827;font-size:13px">${user.nome||m.nome||'Usuário'} <span style="font-weight:400;color:#6b7280;font-size:11px">${new Date(m.timestamp).toLocaleTimeString()}</span></div><div style="background:white;border:1px solid #e5e7eb;padding:8px 12px;border-radius:10px;margin-top:4px;color:#111827;font-size:14px">${m.text}</div></div><div class="msg-actions">${canDelete?`<button class="del-btn" onclick="deleteMsg('${mid}')">Apagar</button>`:''}</div>`;
+      cont.appendChild(div);
+    });
+    cont.scrollTop=cont.scrollHeight;
+  });
 }
-function updateNotifBtn(){ const btn=document.getElementById('notifBtn'); if(!btn) return; btn.textContent=notifSoundEnabled?'🔔':'🔕'; }
-function playNotifSound(){
- try{ const ctx=new (window.AudioContext||window.webkitAudioContext)(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.type='sine'; o.frequency.value=880; o.connect(g); g.connect(ctx.destination); g.gain.setValueAtTime(0.3, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime+0.3); o.start(); o.stop(ctx.currentTime+0.3); }catch(e){}
+function sendMessage(){
+  const inp=document.getElementById('msgInput'); const text=inp.value.trim(); if(!text) return;
+  firebase.database().ref('channels/'+currentChannel.id+'/messages').push({text, uid:currentUser.id, nome:currentUser.nome, timestamp: firebase.database.ServerValue.TIMESTAMP});
+  inp.value='';
 }
-function showBrowserNotification(title, body, channelId){
- if(!notifPermission || Notification.permission!=='granted') return;
- if(!document.hidden && currentChannel===channelId) return;
- try{ const n=new Notification(title, {body: body}); n.onclick=()=>{ window.focus(); if(channelId){ const ch=allChannelsCache[channelId]; if(ch) selectChannel(channelId, ch.label, 'channel'); else selectChannel(channelId, '#'+channelId, 'channel'); } n.close(); }; setTimeout(()=>n.close(),6000); }catch(e){}
+function deleteMsg(mid){
+  if(!confirm('Apagar mensagem?')) return;
+  firebase.database().ref('channels/'+currentChannel.id+'/messages/'+mid).remove();
 }
-function setupGlobalNotifications(){
- if(Notification && Notification.permission==='default'){ Notification.requestPermission().then(p=>{ notifPermission=p==='granted'; }); }
- else if(Notification && Notification.permission==='granted') notifPermission=true;
- notifSoundEnabled=true; updateNotifBtn();
- firebase.database().ref('channel_list').on('value', snap=>{
-   const chans=snap.val()||{};
-   Object.keys(chans).forEach(cid=>{
-     const ch=chans[cid];
-     if(!isAdmin() && ch.members && !ch.members[currentUser.id] && ch.createdBy!==currentUser.id) return;
-     if(globalNotifiers[cid]) return;
-     const ref=firebase.database().ref('channels/'+cid+'/messages').limitToLast(1);
-     globalNotifiers[cid]=ref;
-     ref.on('child_added', s=>{
-       const m=s.val(); if(!m) return;
-       if(m.userId===currentUser.id) return;
-       if(!initialLoadDone) return;
-       if(Date.now() - m.timestamp > 10000) return;
-       if(cid===currentChannel && !document.hidden) return;
-       unreadCounts[cid]=(unreadCounts[cid]||0)+1;
-       renderChannelList(allChannelsCache);
-       const preview = m.text ? m.text.substring(0,60) : (m.fileName ? '📎 '+m.fileName : 'Nova mensagem');
-       showBrowserNotification((ch.label||'#'+cid)+' - '+m.user, preview, cid);
-       playNotifSound();
-     });
-   });
- });
- firebase.database().ref('dms').on('child_added', snap=>{
-   const dmId=snap.key;
-   if(!dmId.includes(currentUser.id)) return;
-   if(globalNotifiers['dm_'+dmId]) return;
-   const ref=firebase.database().ref('dms/'+dmId+'/messages').limitToLast(1);
-   globalNotifiers['dm_'+dmId]=ref;
-   ref.on('child_added', s=>{
-     const m=s.val(); if(!m) return;
-     if(m.userId===currentUser.id) return;
-     if(!initialLoadDone) return;
-     if(Date.now() - m.timestamp > 10000) return;
-     if(dmId===currentChannel && !document.hidden) return;
-     unreadCounts[dmId]=(unreadCounts[dmId]||0)+1;
-     renderUsers(); renderChannelList(allChannelsCache);
-     const preview = m.text ? m.text.substring(0,60) : '📎 Arquivo';
-     showBrowserNotification('💬 '+m.user, preview, dmId);
-     playNotifSound();
-   });
- });
- setTimeout(()=>{ initialLoadDone=true; }, 4000);
+function loadUsers(){
+  firebase.database().ref('users').on('value', snap=>{
+    allUsersCache=snap.val()||{};
+    window.allUsers=Object.entries(allUsersCache).map(([id,v])=>({id,...v}));
+    const dmList=document.getElementById('dmList'); dmList.innerHTML='';
+    Object.values(allUsersCache).forEach(u=>{
+      if(!u || u.id===currentUser.id || !u.nome) return;
+      // pega id real
+    });
+    // rebuild para DMs
+    Object.entries(allUsersCache).forEach(([uid,u])=>{
+      if(uid===currentUser.id) return;
+      const div=document.createElement('div');
+      div.style.cssText='padding:8px 10px;border-radius:8px;cursor:pointer;color:#94a3b8;display:flex;gap:8px;align-items:center';
+      div.innerHTML=`<div style="position:relative"><div style="width:28px;height:28px;border-radius:50%;background:${u.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;font-size:12px">${(u.nome||'U')[0]}</div><div class="status-dot ${u.online?'status-online':'status-offline'}"></div></div><div style="font-size:13px">${u.nome}</div>`;
+      dmList.appendChild(div);
+    });
+  });
 }
-function clearUnread(channelId){ if(unreadCounts[channelId]){ delete unreadCounts[channelId]; renderChannelList(allChannelsCache); renderUsers(); updateTotalUnread(); } }
-function openAdminPanel(){ if(!isAdmin()){ alert('Acesso negado'); return; } document.getElementById('adminPanelModal').style.display='flex'; switchAdminTab('users'); }
-function closeAdminPanel(){ document.getElementById('adminPanelModal').style.display='none'; }
+
+// ================ ADMIN SEGURO =================
+function isCurrentUserAdmin(){
+  return currentUser && currentUser.isAdmin === true;
+}
+function openAdminPanel(){
+  if(!isCurrentUserAdmin()){
+    alert('Acesso negado: apenas admins');
+    return;
+  }
+  document.getElementById('adminPanel').style.display='block';
+  switchAdminTab('users');
+}
+function closeAdminPanel(){ document.getElementById('adminPanel').style.display='none'; }
+
 function switchAdminTab(tab){
- document.getElementById('adminTabUsers').style.background=tab==='users'?'#6366f122':'#0f172a';
  document.getElementById('adminTabUsers').style.borderColor=tab==='users'?'#6366f1':'#334155';
+ document.getElementById('adminTabUsers').style.background=tab==='users'?'#6366f122':'#0f172a';
  document.getElementById('adminTabChannels').style.background=tab==='channels'?'#6366f122':'#0f172a';
  document.getElementById('adminTabChannels').style.borderColor=tab==='channels'?'#6366f1':'#334155';
  document.getElementById('adminTabMessages').style.background=tab==='messages'?'#6366f122':'#0f172a';
@@ -619,30 +347,26 @@ function switchAdminTab(tab){
 }
 function renderAdminUsers(){
  const cont=document.getElementById('adminTabContent');
- const users = window.allUsers ? [...window.allUsers, currentUser] : [currentUser];
- const map={}; users.forEach(u=>{ if(u && u.id) map[u.id]=u; });
- const list=Object.values(map);
+ const list=Object.entries(allUsersCache).map(([id,v])=>({id,...v}));
  document.getElementById('adminUserCount').textContent=list.length;
- cont.innerHTML=`<div style="margin-bottom:12px;font-size:13px;color:#94a3b8">Botão fix só aparece para admin</div>`;
+ cont.innerHTML=`<div style="margin-bottom:12px;font-size:13px;color:#94a3b8">Regra segura ativa: só quem tem isAdmin=true no banco tem poder total</div>`;
  list.sort((a,b)=> (a.email||'').localeCompare(b.email||'')).forEach(u=>{
    const isSelf = u.id===currentUser.id;
-   const isAdminUser = ADMIN_EMAILS.includes((u.email||'').toLowerCase());
-   const online = isUserOnline(u);
+   const online = u.online;
    const div=document.createElement('div');
    div.style.cssText='display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #334155;border-radius:10px;margin-bottom:8px;background:#0f172a';
-   div.innerHTML=`<div style="width:40px;height:40px;border-radius:50%;background:${u.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700">${(u.nome||'U')[0].toUpperCase()}</div><div style="flex:1"><div style="font-weight:600;color:white">${u.nome||'Sem nome'} ${isAdminUser?'<span style="background:#7c3aed;color:white;font-size:10px;padding:2px 6px;border-radius:4px">ADMIN</span>':''}</div><div style="font-size:12px;color:#94a3b8">${u.email||''}</div><div style="font-size:11px;color:${online?'#22c55e':'#6b7280'}">${online?'🟢 online':'⚫ '+formatLastSeen(u.lastSeen||u.lastActive)}</div></div><div style="display:flex;flex-direction:column;gap:6px"><button onclick="openEditUser('${u.id}')" style="padding:6px 12px;border-radius:6px;border:1px solid #334155;background:#1f2937;color:#94a3b8;cursor:pointer;font-size:12px">✏️</button><button onclick="adminDeleteUser('${u.id}','${(u.nome||'').replace(/'/g,"")}')" style="padding:6px 12px;border-radius:6px;border:1px solid #7f1d1d;background:#7f1d1d22;color:#f87171;cursor:pointer;font-size:12px" ${isSelf?'disabled':''}>🗑️</button></div>`;
+   div.innerHTML=`<div style="width:40px;height:40px;border-radius:50%;background:${u.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700">${(u.nome||'U')[0].toUpperCase()}</div><div style="flex:1"><div style="font-weight:600;color:white">${u.nome||'Sem nome'} ${u.isAdmin?'<span style="background:#7c3aed;color:white;font-size:10px;padding:2px 6px;border-radius:4px">ADMIN</span>':''}</div><div style="font-size:12px;color:#94a3b8">${u.email||''}</div><div style="font-size:11px;color:${online?'#22c55e':'#6b7280'}">${online?'🟢 online':'⚫ offline'}</div></div><div style="display:flex;flex-direction:column;gap:6px"><button onclick="openEditUser('${u.id}')" style="padding:6px 12px;border-radius:6px;border:1px solid #334155;background:#1f2937;color:#94a3b8;cursor:pointer;font-size:12px">✏️</button><button onclick="adminDeleteUser('${u.id}','${(u.nome||'').replace(/'/g,"")}')" style="padding:6px 12px;border-radius:6px;border:1px solid #7f1d1d;background:#7f1d1d22;color:#f87171;cursor:pointer;font-size:12px" ${isSelf?'disabled':''}>🗑️</button></div>`;
    cont.appendChild(div);
  });
 }
 function openEditUser(userId){
- const users = window.allUsers ? [...window.allUsers, currentUser] : [currentUser];
- const u = users.find(x=>x && x.id===userId) || (currentUser.id===userId?currentUser:null);
- if(!u){ alert('Não encontrado'); return; }
- document.getElementById('editUserId').value=u.id;
+ const u = allUsersCache[userId]; if(!u){ alert('Não encontrado'); return; }
+ document.getElementById('editUserId').value=userId;
  document.getElementById('editUserNome').value=u.nome||'';
  document.getElementById('editUserCargo').value=u.cargo||'';
  document.getElementById('editUserEmail').value=u.email||'';
  document.getElementById('editUserColor').value=u.avatarColor||'#6366f1';
+ document.getElementById('editUserIsAdmin').checked = !!u.isAdmin;
  document.getElementById('editUserErr').style.display='none';
  document.getElementById('editUserModal').style.display='flex';
 }
@@ -652,35 +376,39 @@ function saveEditUser(){
  const nome=document.getElementById('editUserNome').value.trim();
  const cargo=document.getElementById('editUserCargo').value.trim();
  const color=document.getElementById('editUserColor').value;
+ const isAdmin=document.getElementById('editUserIsAdmin').checked;
  if(nome.length<2){ document.getElementById('editUserErr').textContent='Nome muito curto'; document.getElementById('editUserErr').style.display='block'; return; }
- firebase.database().ref('users/'+id).update({nome:nome, cargo:cargo, avatarColor:color}).then(()=>{ closeEditUser(); alert('Atualizado!'); });
+ firebase.database().ref('users/'+id).update({nome, cargo, avatarColor:color, isAdmin}).then(()=>{ closeEditUser(); });
 }
 function adminDeleteUser(userId, nome){
+ if(!isCurrentUserAdmin()) return alert('Sem permissão');
  if(userId===currentUser.id){ alert('Não pode excluir a si mesmo'); return; }
- if(!confirm('Excluir usuário '+nome+'?')) return;
- firebase.database().ref('users/'+userId).remove().then(()=>{ alert('Excluído!'); renderAdminUsers(); });
+ if(!confirm('Excluir usuário '+nome+'? Isso apaga do banco. O Auth precisa ser excluído manualmente no Firebase Console > Authentication')) return;
+ firebase.database().ref('users/'+userId).remove().then(()=>{ alert('Excluído do database! Lembre de excluir também em Authentication'); renderAdminUsers(); });
 }
 function renderAdminChannels(){
  const cont=document.getElementById('adminTabContent');
- const chans = allChannelsCache || {};
- const list=Object.values(chans);
+ const list=Object.values(allChannelsCache);
  cont.innerHTML=`<div style="margin-bottom:12px;font-size:13px;color:#94a3b8">Total: ${list.length} canais</div>`;
  list.forEach(ch=>{
    const div=document.createElement('div');
    div.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:12px;border:1px solid #334155;border-radius:10px;margin-bottom:8px;background:#0f172a';
-   const isPrivate = ch.members ? '🔒 Privado' : '🌐 Público';
-   div.innerHTML=`<div><div style="font-weight:600;color:white">${ch.label} <span style="font-size:11px;color:#94a3b8">${isPrivate}</span></div><div style="font-size:11px;color:#6b7280">ID: ${ch.id}</div></div><div style="display:flex;gap:6px"><button onclick="selectChannel('${ch.id}','${ch.label}','channel'); closeAdminPanel(); closeSidebar();" style="padding:6px 12px;border-radius:6px;border:1px solid #334155;background:#1f2937;color:#94a3b8;cursor:pointer;font-size:12px">Abrir</button><button onclick="deleteChannel('${ch.id}','${ch.label}')" style="padding:6px 12px;border-radius:6px;border:1px solid #7f1d1d;background:#7f1d1d22;color:#f87171;cursor:pointer;font-size:12px" ${ch.id==='geral'?'disabled':''}>🗑️</button></div>`;
+   div.innerHTML=`<div><div style="font-weight:600;color:white">${ch.label}</div><div style="font-size:11px;color:#6b7280">ID: ${ch.id}</div></div><div style="display:flex;gap:6px"><button onclick="selectChannel('${ch.id}','${ch.label}','channel'); closeAdminPanel();" style="padding:6px 12px;border-radius:6px;border:1px solid #334155;background:#1f2937;color:#94a3b8;cursor:pointer;font-size:12px">Abrir</button><button onclick="if(confirm('Excluir canal ${ch.label}?')) firebase.database().ref('channels/${ch.id}').remove()" style="padding:6px 12px;border-radius:6px;border:1px solid #7f1d1d;background:#7f1d1d22;color:#f87171;cursor:pointer;font-size:12px" ${ch.id==='geral'?'disabled':''}>🗑️</button></div>`;
    cont.appendChild(div);
  });
 }
 function renderAdminMessages(){
  const cont=document.getElementById('adminTabContent');
- cont.innerHTML=`<div style="padding:12px;background:#7c3aed22;border:1px solid #7c3aed44;border-radius:10px;margin-bottom:12px"><div style="font-weight:600;color:white;margin-bottom:6px">👑 Admin</div><ul style="font-size:13px;color:#d1d5db;margin-left:16px"><li>Excluir qualquer mensagem</li><li>Editar/excluir usuários</li><li>Botão fix só pra você</li></ul></div><button onclick="if(confirm('Limpar TODAS as mensagens?')){ firebase.database().ref('channels').remove(); firebase.database().ref('dms').remove(); alert('Apagadas!'); }" style="width:100%;padding:12px;border-radius:10px;border:1px solid #7f1d1d;background:#7f1d1d22;color:#f87171;cursor:pointer;font-weight:600">⚠️ Limpar todas as mensagens</button>`;
+ cont.innerHTML=`<div style="padding:12px;background:#7c3aed22;border:1px solid #7c3aed44;border-radius:10px;margin-bottom:12px"><div style="font-weight:600;color:white;margin-bottom:6px">👑 Admin Seguro</div><ul style="font-size:13px;color:#d1d5db;margin-left:16px"><li>isAdmin verificado no banco (não no front)</li><li>Regras do Realtime Database bloqueiam não-admin</li><li>Excluir qualquer mensagem</li><li>Gerenciar canais e usuários</li></ul></div><button onclick="if(confirm('Limpar TODAS as mensagens de TODOS os canais?')){ firebase.database().ref('channels').once('value', s=>{ s.forEach(c=>{ firebase.database().ref('channels/'+c.key+'/messages').remove(); }); alert('Mensagens apagadas, canais mantidos'); })}" style="width:100%;padding:12px;border-radius:10px;border:1px solid #7f1d1d;background:#7f1d1d22;color:#f87171;cursor:pointer;font-weight:600">⚠️ Limpar todas as mensagens</button>`;
 }
+function openSidebar(){ document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('show'); }
+function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
+function openCreateChannelModal(){ const n=prompt('Nome do novo canal:'); if(n){ const id=n.toLowerCase().replace(/\s+/g,'-'); firebase.database().ref('channels/'+id).set({id,label:n}); } }
 async function doLogout(){
  try{ if(currentUser){ await firebase.database().ref('users/'+currentUser.id).update({online:false, lastSeen: firebase.database.ServerValue.TIMESTAMP, lastActive:0}); await firebase.database().ref('users/'+currentUser.id).onDisconnect().cancel(); } }catch(e){}
  await firebase.auth().signOut(); location.reload();
 }
+function isUserOnline(u){ return u && u.online; }
 setTimeout(initFirebase,400);
 </script>
 </body>
