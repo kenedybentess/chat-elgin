@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#111827">
-<title>Connect Elgin - Seguro + Admin Fix</title>
+<title>Connect Elgin - Seguro v2 (Regras Corrigidas)</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
 body{background:#0f172a;color:#e2e8f0;overscroll-behavior:none}
@@ -121,6 +121,20 @@ const colors=["#6366f1","#06b6d4","#f59e0b","#10b981","#ec4899","#8b5cf6"]; let 
 const cp=document.getElementById('colorPick'); colors.forEach(c=>{const d=document.createElement('div');d.className='color'+(c===selColor?' sel':'');d.style.background=c;d.onclick=()=>{selColor=c;document.querySelectorAll('.color').forEach(x=>x.classList.remove('sel'));d.classList.add('sel')};cp.appendChild(d)});
 function switchTab(t){document.getElementById('formLogin').style.display=t==='login'?'block':'none';document.getElementById('formReg').style.display=t==='reg'?'block':'none';document.getElementById('tabLogin').classList.toggle('active',t==='login');document.getElementById('tabReg').classList.toggle('active',t==='reg')}
 window.onerror=(m)=>{document.getElementById('status').textContent='Erro: '+m;document.getElementById('status').style.color='#f87171'}
+
+/* 
+  REGRAS STORAGE OBRIGATÓRIAS (Firebase Console > Storage > Rules):
+  rules_version = '2';
+  service firebase.storage {
+    match /b/{bucket}/o {
+      match /chat_files/{channelId}/{fileName} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null && request.resource.size < 15 * 1024 * 1024;
+      }
+    }
+  }
+*/
+
 const firebaseConfig={apiKey:"AIzaSyA7RDUiCwBu8ilgOPyv-HcD_TTpujAoJio",authDomain:"chat-elgin.firebaseapp.com",databaseURL:"https://chat-elgin-default-rtdb.firebaseio.com",projectId:"chat-elgin",storageBucket:"chat-elgin.firebasestorage.app",messagingSenderId:"751356348223",appId:"1:751356348223:web:afa81eb49c715df3de358a"};
 let firebaseLoaded=false;
 function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
@@ -145,7 +159,7 @@ function closeSidebar(){ document.getElementById('sidebar').classList.remove('op
 function showErr(id,msg){const el=document.getElementById(id);el.style.display='block';el.textContent=msg}
 function hideErr(id){document.getElementById(id).style.display='none'}
 function formatLastSeen(ts){ if(!ts) return 'offline'; const diff=Date.now()-ts; const m=Math.floor(diff/60000); if(m<1) return 'agora'; if(m<60) return `há ${m} min`; const h=Math.floor(m/60); if(h<24) return `há ${h}h`; const d=Math.floor(h/24); return `há ${d}d`; }
-function isUserOnline(u){ if(!u) return false; const now=Date.now(); const last = u.lastActive || u.lastSeen || 0; if(!last && u.online){ if(u.createdAt && (now - u.createdAt) > 5*60*1000) return false; return false; } return (now - last) < 90*1000; }
+function isUserOnline(u){ if(!u) return false; const now=Date.now(); const last = u.lastActive || u.lastSeen || 0; if(!last){ return !!u.online && u.createdAt && (now - u.createdAt) < 2*60*1000; } return (now - last) < 90*1000; }
 function setupPresence(uid){
   const userRef = firebase.database().ref('users/'+uid);
   const connectedRef = firebase.database().ref('.info/connected');
@@ -524,7 +538,7 @@ async function uploadFile(file, captionText=""){
 function deleteMsg(msgKey){
  if(!confirm('Excluir esta mensagem?')) return;
  const m=messagesCache[msgKey];
- if(m && m.userId !== currentUser.id && !isAdmin()){ alert('Só pode excluir suas'); return; }
+ if(m && m.userId !== currentUser.id && !isAdmin()){ alert('Só pode excluir suas mensagens'); return; }
  let path = currentChannelType==='dm' ? 'dms/'+currentChannel+'/messages/'+msgKey : 'channels/'+currentChannel+'/messages/'+msgKey;
  firebase.database().ref(path).remove().then(()=>{ const el=document.getElementById('msg-'+msgKey); if(el) el.remove(); }).catch(e=>{ alert('Sem permissão: '+e.message); });
 }
