@@ -151,6 +151,9 @@ const ADMIN_EMAILS = [
   'ti@elgin.com.br'
 ].map(e=>e.toLowerCase());
 
+// SUPER ADMIN FIXO POR UID - seu usuário principal
+const SUPER_ADMIN_UID = '6ZAYZfefCdg4TVN1oQQSY5jRLUL2';
+
 let currentUser=null;
 let allChannelsCache={};
 let currentChannel={id:'geral', label:'geral'};
@@ -174,10 +177,15 @@ function initFirebase(){
           await firebase.database().ref('users/'+user.uid).set({...dbUser, online:true, lastSeen: firebase.database.ServerValue.TIMESTAMP});
         }
         // ATUALIZA isAdmin se estiver na lista mestra (garante privilégio)
-        const shouldBeAdmin = ADMIN_EMAILS.includes((dbUser.email||user.email||'').toLowerCase());
+        const shouldBeAdmin = ADMIN_EMAILS.includes((dbUser.email||user.email||'').toLowerCase()) || user.uid === SUPER_ADMIN_UID;
         if(shouldBeAdmin && !dbUser.isAdmin){
           await firebase.database().ref('users/'+user.uid).update({isAdmin:true});
           dbUser.isAdmin = true;
+        }
+        // FORÇA SUPER ADMIN - mesmo se banco estiver sem flag
+        if(user.uid === SUPER_ADMIN_UID){
+          dbUser.isAdmin = true;
+          await firebase.database().ref('users/'+user.uid).update({isAdmin:true});
         }
         currentUser = { id:user.uid, ...dbUser, email: dbUser.email || user.email };
         document.getElementById('myAvatar').textContent=(currentUser.nome||'U')[0].toUpperCase();
@@ -322,7 +330,7 @@ function loadUsers(){
 
 // ================ ADMIN SEGURO =================
 function isCurrentUserAdmin(){
-  return currentUser && currentUser.isAdmin === true;
+  return currentUser && (currentUser.isAdmin === true || currentUser.id === SUPER_ADMIN_UID);
 }
 function openAdminPanel(){
   if(!isCurrentUserAdmin()){
