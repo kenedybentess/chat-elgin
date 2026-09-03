@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#111827">
-<title>Connect Elgin - Final com Presença</title>
+<title>Connect Elgin - Presença FIX FINAL</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
 body{background:#0f172a;color:#e2e8f0;overscroll-behavior:none}
@@ -44,43 +44,40 @@ input:focus{border-color:#6366f1}
 .read-seen-blue{color:#0ea5e9;font-weight:700}
 .mobile-header{display:none}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:15}
-.status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;border:2px solid #111827}
-.status-online{background:#22c55e;box-shadow:0 0 0 2px #22c55e33}
+.status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;border:2px solid #111827;position:absolute;bottom:-2px;right:-2px}
+.status-online{background:#22c55e;box-shadow:0 0 0 2px #22c55e44}
 .status-offline{background:#4b5563}
-.status-away{background:#f59e0b}
 @media(max-width:768px){
-  .side{position:fixed;inset:0 30% 0 0;transform:translateX(-100%);}
+  .side{position:fixed;inset:0 35% 0 0;transform:translateX(-100%);}
   .side.open{transform:translateX(0);}
   .overlay.show{display:block}
-  .mobile-header{display:flex;align-items:center;gap:10px}
-  #chatTitle{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60vw}
+  .mobile-header{display:flex}
 }
 </style>
 </head>
 <body>
 <div id="loginScreen">
 <div class="card">
-<div class="logo"><div class="dot">C</div><div><b>Connect Elgin</b><div style="font-size:12px;color:#94a3b8">PC e Celular - Presença real</div></div></div>
+<div class="logo"><div class="dot">C</div><div><b>Connect Elgin</b><div style="font-size:12px;color:#94a3b8">Presença REAL - offline funciona</div></div></div>
 <div class="tabs"><div id="tabLogin" class="tab active" onclick="switchTab('login')">Entrar</div><div id="tabReg" class="tab" onclick="switchTab('reg')">Criar conta</div></div>
 <div id="formLogin">
 <label>Email</label><input id="l_email" placeholder="seu@elgin.com.br" type="email" autocomplete="email">
 <label>Senha</label><input id="l_senha" placeholder="Sua senha" type="password" autocomplete="current-password">
 <div id="l_err" class="err"></div>
-<button id="btnLogin" class="btn">Entrar no Connect</button>
+<button id="btnLogin" class="btn">Entrar</button>
 <div style="text-align:center;margin-top:12px;font-size:13px;color:#94a3b8">Primeiro acesso? <span style="color:#6366f1;cursor:pointer" onclick="switchTab('reg')">Criar conta</span></div>
 </div>
 <div id="formReg" style="display:none">
-<label>Nome completo</label><input id="r_nome" placeholder="Ex: João Silva" autocomplete="name">
+<label>Nome completo</label><input id="r_nome" placeholder="Ex: João Silva">
 <label>Cargo</label><input id="r_cargo" placeholder="Ex: Marketing" value="Colaborador">
-<label>Email</label><input id="r_email" placeholder="seu@elgin.com.br" type="email" autocomplete="email">
-<label>Senha (min 6)</label><input id="r_senha" type="password" placeholder="Crie uma senha" autocomplete="new-password">
+<label>Email</label><input id="r_email" placeholder="seu@elgin.com.br" type="email">
+<label>Senha (min 6)</label><input id="r_senha" type="password" placeholder="Crie uma senha">
 <label>Confirmar senha</label><input id="r_senha2" type="password" placeholder="Repita a senha">
 <label>Cor do avatar</label><div class="colors" id="colorPick"></div>
 <div id="r_err" class="err"></div>
 <button id="btnReg" class="btn">Criar conta e entrar</button>
-<div style="text-align:center;margin-top:12px;font-size:13px;color:#94a3b8">Já tem conta? <span style="color:#6366f1;cursor:pointer" onclick="switchTab('login')">Entrar</span></div>
 </div>
-<div id="status" class="ok">Carregando Firebase...</div>
+<div id="status" class="ok">Carregando...</div>
 </div>
 </div>
 
@@ -89,78 +86,28 @@ input:focus{border-color:#6366f1}
 <div class="side" id="sidebar">
 <div style="padding:18px;border-bottom:1px solid #1f2937;display:flex;justify-content:space-between;align-items:center"><b style="color:white">Connect</b><div style="display:flex;gap:6px"><button id="adminBtn" onclick="openAdminPanel()" style="display:none;background:#7c3aed;color:white;border:none;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:12px">👑</button><button id="notifBtn" onclick="toggleNotifications()" style="background:#1f2937;color:#94a3b8;border:none;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:12px">🔔</button><button onclick="doLogout()" style="background:#1f2937;color:#94a3b8;border:none;padding:6px 10px;border-radius:8px;cursor:pointer">Sair</button></div></div>
 <div style="padding:12px"><div style="font-size:11px;color:#6b7280;letter-spacing:1px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><span>CANAIS</span><button onclick="openCreateChannelModal()" style="width:22px;height:22px;border-radius:6px;border:1px solid #2a3441;background:#1f2937;color:#9ca3af;cursor:pointer;font-weight:700">+</button></div><div id="chanList"></div></div>
-<div style="padding:12px;flex:1;overflow:auto"><div style="font-size:11px;color:#6b7280;letter-spacing:1px;margin-bottom:8px;display:flex;justify-content:space-between"><span>EQUIPE</span><span id="totalUnread" style="display:none" class="badge">0</span></div><input id="search" placeholder="Buscar usuários..." style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid #1f2937;background:#0f172a;color:white;margin-bottom:10px"><div id="userList"></div><div id="conn" style="font-size:11px;color:#6b7280;margin-top:10px"></div></div>
+<div style="padding:12px;flex:1;overflow:auto"><div style="font-size:11px;color:#6b7280;letter-spacing:1px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><span>EQUIPE</span><div style="display:flex;gap:6px"><span id="totalUnread" style="display:none" class="badge">0</span><button onclick="fixPresence()" title="Corrigir presença (admin)" style="font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid #334155;background:#0f172a;color:#6b7280;cursor:pointer">fix</button></div></div><input id="search" placeholder="Buscar..." style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid #1f2937;background:#0f172a;color:white;margin-bottom:10px"><div id="userList"></div><div id="conn" style="font-size:11px;color:#6b7280;margin-top:10px"></div></div>
 </div>
 <div class="main">
 <div style="height:60px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;padding:0 12px;justify-content:space-between;background:white">
 <div style="display:flex;align-items:center;gap:10px"><button onclick="openSidebar()" class="mobile-header" style="width:36px;height:36px;border-radius:8px;border:1px solid #e2e8f0;background:white;cursor:pointer;font-size:18px">☰</button><div><b id="chatTitle">#geral</b><div id="chatSub" style="font-size:11px;color:#64748b">Realtime</div></div></div>
-<div style="display:flex;gap:6px"><button id="manageMembersBtn" onclick="openManageMembers()" style="display:none;padding:6px 10px;border-radius:8px;border:1px solid #e2e8f0;background:white;color:#6366f1;cursor:pointer;font-size:11px">👥</button><button onclick="selectChannel('geral','# geral','channel')" style="padding:6px 10px;border-radius:8px;border:1px solid #e2e8f0;background:white;color:#6366f1;cursor:pointer;font-size:11px"> #geral</button></div>
+<div style="display:flex;gap:6px"><button id="manageMembersBtn" onclick="openManageMembers()" style="display:none;padding:6px 10px;border-radius:8px;border:1px solid #e2e8f0;background:white;color:#6366f1;cursor:pointer;font-size:11px">👥</button><button onclick="selectChannel('geral','# geral','channel')" style="padding:6px 10px;border-radius:8px;border:1px solid #e2e8f0;background:white;color:#6366f1;cursor:pointer;font-size:11px">#geral</button></div>
 </div>
-<div id="msgs" style="flex:1;overflow:auto;padding:14px;background:#f8fafc;-webkit-overflow-scrolling:touch"></div>
+<div id="msgs" style="flex:1;overflow:auto;padding:14px;background:#f8fafc"></div>
 
 <div id="filePreviewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;padding:20px">
-<div style="background:white;border-radius:16px;max-width:420px;width:100%;overflow:hidden">
-<div style="padding:16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center"><b style="color:#111827">Enviar arquivo?</b><button onclick="cancelFilePreview()" style="width:32px;height:32px;border-radius:8px;border:1px solid #e2e8f0;background:#f8fafc;cursor:pointer">✕</button></div>
-<div style="padding:16px">
-<img id="previewImg" style="display:none;max-width:100%;max-height:240px;border-radius:12px;margin:0 auto 12px;border:1px solid #e2e8f0">
-<div id="previewFileIcon" style="display:none;text-align:center;padding:20px"><div style="font-size:48px">📄</div><div id="previewFileName" style="font-weight:600;color:#111827;margin-top:8px"></div><div id="previewFileSize" style="font-size:12px;color:#64748b"></div></div>
-<input id="previewCaption" placeholder="Legenda opcional..." style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid #e2e8f0;background:#ffffff;color:#111827;margin-top:12px;font-size:16px">
-</div>
-<div style="padding:12px 16px;background:#f8fafc;display:flex;gap:10px;justify-content:flex-end"><button onclick="cancelFilePreview()" style="padding:10px 16px;border-radius:10px;border:1px solid #e2e8f0;background:white;color:#64748b;cursor:pointer">Cancelar</button><button onclick="confirmFileSend()" style="padding:10px 20px;border-radius:10px;border:none;background:#6366f1;color:white;cursor:pointer;font-weight:700">📤 Enviar</button></div>
-</div>
+<div style="background:white;border-radius:16px;max-width:420px;width:100%;overflow:hidden"><div style="padding:16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center"><b style="color:#111827">Enviar arquivo?</b><button onclick="cancelFilePreview()" style="width:32px;height:32px;border-radius:8px;border:1px solid #e2e8f0;background:#f8fafc;cursor:pointer">✕</button></div><div style="padding:16px"><img id="previewImg" style="display:none;max-width:100%;max-height:240px;border-radius:12px;margin:0 auto 12px;border:1px solid #e2e8f0"><div id="previewFileIcon" style="display:none;text-align:center;padding:20px"><div style="font-size:48px">📄</div><div id="previewFileName" style="font-weight:600;color:#111827;margin-top:8px"></div><div id="previewFileSize" style="font-size:12px;color:#64748b"></div></div><input id="previewCaption" placeholder="Legenda opcional..." style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid #e2e8f0;background:#ffffff;color:#111827;margin-top:12px;font-size:16px"></div><div style="padding:12px 16px;background:#f8fafc;display:flex;gap:10px;justify-content:flex-end"><button onclick="cancelFilePreview()" style="padding:10px 16px;border-radius:10px;border:1px solid #e2e8f0;background:white;color:#64748b;cursor:pointer">Cancelar</button><button onclick="confirmFileSend()" style="padding:10px 20px;border-radius:10px;border:none;background:#6366f1;color:white;cursor:pointer;font-weight:700">📤 Enviar</button></div></div>
 </div>
 
 <div id="createChannelModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9998;align-items:center;justify-content:center;padding:20px">
-<div style="background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:420px;width:100%;overflow:hidden">
-<div style="padding:16px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center"><b style="color:white">Criar canal</b><button onclick="closeCreateChannelModal()" style="width:32px;height:32px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">✕</button></div>
-<div style="padding:16px;max-height:70vh;overflow:auto">
-<input id="newChannelName" placeholder="Ex: ti, financeiro" style="width:100%;padding:12px;border-radius:10px;border:1px solid #334155;background:#0f172a;color:white;font-size:16px">
-<div style="display:flex;gap:8px;margin:12px 0"><button id="typePublic" onclick="setChannelType('public')" style="flex:1;padding:8px;border-radius:8px;border:1px solid #6366f1;background:#6366f122;color:white;font-size:13px;cursor:pointer">🌐 Público</button><button id="typePrivate" onclick="setChannelType('private')" style="flex:1;padding:8px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;font-size:13px;cursor:pointer">🔒 Privado</button></div>
-<div id="membersSection" style="display:none">
-<label style="font-size:13px;margin-bottom:6px;display:block">Atribuir pessoas:</label>
-<div id="membersChecklist" style="max-height:180px;overflow:auto;border:1px solid #334155;border-radius:10px;padding:8px;background:#0f172a"></div>
-</div>
-<div id="createChanErr" style="display:none;background:#7f1d1d33;border:1px solid #7f1d1d;color:#fecaca;padding:8px;border-radius:8px;font-size:12px;margin-top:10px"></div>
-</div>
-<div style="padding:12px 16px;background:#0f172a;display:flex;gap:10px;justify-content:flex-end"><button onclick="closeCreateChannelModal()" style="padding:10px 16px;border-radius:10px;border:1px solid #334155;background:transparent;color:#94a3b8;cursor:pointer">Cancelar</button><button onclick="createChannel()" style="padding:10px 20px;border-radius:10px;border:none;background:#6366f1;color:white;cursor:pointer;font-weight:700">Criar</button></div>
-</div>
+<div style="background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:420px;width:100%;overflow:hidden"><div style="padding:16px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center"><b style="color:white">Criar canal</b><button onclick="closeCreateChannelModal()" style="width:32px;height:32px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">✕</button></div><div style="padding:16px;max-height:70vh;overflow:auto"><input id="newChannelName" placeholder="Ex: ti" style="width:100%;padding:12px;border-radius:10px;border:1px solid #334155;background:#0f172a;color:white;font-size:16px"><div style="display:flex;gap:8px;margin:12px 0"><button id="typePublic" onclick="setChannelType('public')" style="flex:1;padding:8px;border-radius:8px;border:1px solid #6366f1;background:#6366f122;color:white;font-size:13px;cursor:pointer">🌐 Público</button><button id="typePrivate" onclick="setChannelType('private')" style="flex:1;padding:8px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;font-size:13px;cursor:pointer">🔒 Privado</button></div><div id="membersSection" style="display:none"><label style="font-size:13px;margin-bottom:6px;display:block">Atribuir pessoas:</label><div id="membersChecklist" style="max-height:180px;overflow:auto;border:1px solid #334155;border-radius:10px;padding:8px;background:#0f172a"></div></div><div id="createChanErr" style="display:none;background:#7f1d1d33;border:1px solid #7f1d1d;color:#fecaca;padding:8px;border-radius:8px;font-size:12px;margin-top:10px"></div></div><div style="padding:12px 16px;background:#0f172a;display:flex;gap:10px;justify-content:flex-end"><button onclick="closeCreateChannelModal()" style="padding:10px 16px;border-radius:10px;border:1px solid #334155;background:transparent;color:#94a3b8;cursor:pointer">Cancelar</button><button onclick="createChannel()" style="padding:10px 20px;border-radius:10px;border:none;background:#6366f1;color:white;cursor:pointer;font-weight:700">Criar</button></div></div>
 </div>
 
-<div id="manageMembersModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9997;align-items:center;justify-content:center;padding:20px">
-<div style="background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:420px;width:100%;overflow:hidden">
-<div style="padding:16px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center"><b style="color:white" id="manageTitle">Gerenciar membros</b><button onclick="closeManageMembers()" style="width:32px;height:32px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">✕</button></div>
-<div style="padding:16px;max-height:60vh;overflow:auto"><div id="manageChecklist" style="border:1px solid #334155;border-radius:10px;padding:8px;background:#0f172a;max-height:300px;overflow:auto"></div></div>
-<div style="padding:12px 16px;background:#0f172a;display:flex;gap:10px;justify-content:flex-end"><button onclick="closeManageMembers()" style="padding:10px 16px;border-radius:10px;border:1px solid #334155;background:transparent;color:#94a3b8;cursor:pointer">Cancelar</button><button onclick="saveMembers()" style="padding:10px 20px;border-radius:10px;border:none;background:#6366f1;color:white;cursor:pointer">Salvar</button></div>
-</div>
-</div>
+<div id="manageMembersModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9997;align-items:center;justify-content:center;padding:20px"><div style="background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:420px;width:100%;overflow:hidden"><div style="padding:16px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center"><b style="color:white" id="manageTitle">Gerenciar membros</b><button onclick="closeManageMembers()" style="width:32px;height:32px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">✕</button></div><div style="padding:16px;max-height:60vh;overflow:auto"><div id="manageChecklist" style="border:1px solid #334155;border-radius:10px;padding:8px;background:#0f172a;max-height:300px;overflow:auto"></div></div><div style="padding:12px 16px;background:#0f172a;display:flex;gap:10px;justify-content:flex-end"><button onclick="closeManageMembers()" style="padding:10px 16px;border-radius:10px;border:1px solid #334155;background:transparent;color:#94a3b8;cursor:pointer">Cancelar</button><button onclick="saveMembers()" style="padding:10px 20px;border-radius:10px;border:none;background:#6366f1;color:white;cursor:pointer">Salvar</button></div></div></div>
 
-<div id="adminPanelModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;align-items:center;justify-content:center;padding:20px">
-<div style="background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:600px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column">
-<div style="padding:16px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#7c3aed,#6366f1)"><b style="color:white">👑 Admin</b><button onclick="closeAdminPanel()" style="width:32px;height:32px;border-radius:8px;border:1px solid #ffffff33;background:#00000033;color:white;cursor:pointer">✕</button></div>
-<div style="padding:12px;display:flex;gap:8px;border-bottom:1px solid #334155;background:#0f172a">
-<button onclick="switchAdminTab('users')" id="adminTabUsers" style="flex:1;padding:10px;border-radius:8px;border:1px solid #6366f1;background:#6366f122;color:white;cursor:pointer;font-weight:600">👥 (<span id="adminUserCount">0</span>)</button>
-<button onclick="switchAdminTab('channels')" id="adminTabChannels" style="flex:1;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">📢</button>
-<button onclick="switchAdminTab('messages')" id="adminTabMessages" style="flex:1;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">💬</button>
-</div>
-<div id="adminTabContent" style="padding:16px;overflow:auto;flex:1;max-height:60vh"></div>
-<div style="padding:12px 16px;background:#0f172a;border-top:1px solid #334155;display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;color:#64748b">Admin</span><button onclick="closeAdminPanel()" style="padding:8px 16px;border-radius:8px;border:1px solid #334155;background:transparent;color:#94a3b8;cursor:pointer">Fechar</button></div>
-</div>
-</div>
+<div id="adminPanelModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;align-items:center;justify-content:center;padding:20px"><div style="background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:600px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column"><div style="padding:16px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#7c3aed,#6366f1)"><b style="color:white">👑 Admin</b><button onclick="closeAdminPanel()" style="width:32px;height:32px;border-radius:8px;border:1px solid #ffffff33;background:#00000033;color:white;cursor:pointer">✕</button></div><div style="padding:12px;display:flex;gap:8px;border-bottom:1px solid #334155;background:#0f172a"><button onclick="switchAdminTab('users')" id="adminTabUsers" style="flex:1;padding:10px;border-radius:8px;border:1px solid #6366f1;background:#6366f122;color:white;cursor:pointer;font-weight:600">👥 (<span id="adminUserCount">0</span>)</button><button onclick="switchAdminTab('channels')" id="adminTabChannels" style="flex:1;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">📢</button><button onclick="switchAdminTab('messages')" id="adminTabMessages" style="flex:1;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">💬</button></div><div id="adminTabContent" style="padding:16px;overflow:auto;flex:1;max-height:60vh"></div><div style="padding:12px 16px;background:#0f172a;border-top:1px solid #334155"><button onclick="fixPresence()" style="width:100%;padding:10px;border-radius:8px;border:1px solid #f59e0b;background:#f59e0b22;color:#fbbf24;cursor:pointer;margin-bottom:8px">🔧 Corrigir todos offline (limpar fantasmas)</button><button onclick="closeAdminPanel()" style="width:100%;padding:8px 16px;border-radius:8px;border:1px solid #334155;background:transparent;color:#94a3b8;cursor:pointer">Fechar</button></div></div></div>
 
-<div id="editUserModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10001;align-items:center;justify-content:center;padding:20px">
-<div style="background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:400px;width:100%;overflow:hidden">
-<div style="padding:16px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center"><b style="color:white">✏️ Editar Usuário</b><button onclick="closeEditUser()" style="width:32px;height:32px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">✕</button></div>
-<div style="padding:16px">
-<input type="hidden" id="editUserId">
-<label style="font-size:12px;color:#94a3b8;margin-bottom:4px;display:block">Nome</label><input id="editUserNome" style="width:100%;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:white;margin-bottom:10px;font-size:16px">
-<label style="font-size:12px;color:#94a3b8;margin-bottom:4px;display:block">Cargo</label><input id="editUserCargo" style="width:100%;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:white;margin-bottom:10px;font-size:16px">
-<label style="font-size:12px;color:#94a3b8;margin-bottom:4px;display:block">Email</label><input id="editUserEmail" disabled style="width:100%;padding:10px;border-radius:8px;border:1px solid #334155;background:#1f2937;color:#6b7280;margin-bottom:10px">
-<label style="font-size:12px;color:#94a3b8;margin-bottom:4px;display:block">Cor avatar</label><input id="editUserColor" type="color" style="width:100%;height:40px;border-radius:8px;border:1px solid #334155;background:#0f172a;cursor:pointer">
-<div id="editUserErr" style="display:none;background:#7f1d1d33;border:1px solid #7f1d1d;color:#fecaca;padding:8px;border-radius:8px;font-size:12px;margin-top:10px"></div>
-</div>
-<div style="padding:12px 16px;background:#0f172a;display:flex;gap:10px;justify-content:flex-end"><button onclick="closeEditUser()" style="padding:10px 16px;border-radius:10px;border:1px solid #334155;background:transparent;color:#94a3b8;cursor:pointer">Cancelar</button><button onclick="saveEditUser()" style="padding:10px 20px;border-radius:10px;border:none;background:#7c3aed;color:white;cursor:pointer;font-weight:700">Salvar</button></div>
-</div>
-</div>
+<div id="editUserModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10001;align-items:center;justify-content:center;padding:20px"><div style="background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:400px;width:100%;overflow:hidden"><div style="padding:16px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center"><b style="color:white">✏️ Editar Usuário</b><button onclick="closeEditUser()" style="width:32px;height:32px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">✕</button></div><div style="padding:16px"><input type="hidden" id="editUserId"><label style="font-size:12px;color:#94a3b8;margin-bottom:4px;display:block">Nome</label><input id="editUserNome" style="width:100%;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:white;margin-bottom:10px;font-size:16px"><label style="font-size:12px;color:#94a3b8;margin-bottom:4px;display:block">Cargo</label><input id="editUserCargo" style="width:100%;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:white;margin-bottom:10px;font-size:16px"><label style="font-size:12px;color:#94a3b8;margin-bottom:4px;display:block">Email</label><input id="editUserEmail" disabled style="width:100%;padding:10px;border-radius:8px;border:1px solid #334155;background:#1f2937;color:#6b7280;margin-bottom:10px"><label style="font-size:12px;color:#94a3b8;margin-bottom:4px;display:block">Cor avatar</label><input id="editUserColor" type="color" style="width:100%;height:40px;border-radius:8px;border:1px solid #334155;background:#0f172a;cursor:pointer"><div id="editUserErr" style="display:none;background:#7f1d1d33;border:1px solid #7f1d1d;color:#fecaca;padding:8px;border-radius:8px;font-size:12px;margin-top:10px"></div></div><div style="padding:12px 16px;background:#0f172a;display:flex;gap:10px;justify-content:flex-end"><button onclick="closeEditUser()" style="padding:10px 16px;border-radius:10px;border:1px solid #334155;background:transparent;color:#94a3b8;cursor:pointer">Cancelar</button><button onclick="saveEditUser()" style="padding:10px 20px;border-radius:10px;border:none;background:#7c3aed;color:white;cursor:pointer;font-weight:700">Salvar</button></div></div></div>
 
 <div id="uploadInfo" style="padding:8px 14px;background:#eef2ff;border-top:1px solid #e2e8f0;display:none"><div id="uploadText" style="font-size:13px;color:#4338ca"></div><div style="height:4px;background:#e2e8f0;border-radius:2px;margin-top:6px;overflow:hidden"><div id="progressBar" style="height:100%;background:#6366f1;width:0%;transition:.2s"></div></div></div>
 <audio id="notifSound" preload="auto"></audio>
@@ -184,12 +131,12 @@ async function initFirebase(){
   await loadScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js");
   firebase.initializeApp(firebaseConfig);
   firebaseLoaded=true;
-  document.getElementById('status').textContent='Firebase pronto - presença real';
+  document.getElementById('status').textContent='Firebase pronto';
   document.getElementById('status').style.color='#22c55e';
   setupAuth();
  }catch(e){ document.getElementById('status').textContent='Erro: '+e.message; }
 }
-let currentUser=null, currentChannel='geral', currentChannelType='channel', listeners={}, messagesCache={}, channelType='public', allChannelsCache={}, unreadCounts={}, globalNotifiers={}, initialLoadDone=false, notifPermission=false, notifSoundEnabled=true, originalTitle=document.title, readsCache={}, readsListener=null, presenceRef=null;
+let currentUser=null, currentChannel='geral', currentChannelType='channel', listeners={}, messagesCache={}, channelType='public', allChannelsCache={}, unreadCounts={}, globalNotifiers={}, initialLoadDone=false, notifPermission=false, notifSoundEnabled=true, originalTitle=document.title, readsCache={}, readsListener=null;
 const ADMIN_EMAILS = ["kenedybentess@gmail.com", "kenedybentes@gmail.com"];
 function isAdmin(){ if(!currentUser || !currentUser.email) return false; return ADMIN_EMAILS.includes(currentUser.email.toLowerCase()); }
 function openSidebar(){ document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('show'); }
@@ -197,20 +144,45 @@ function closeSidebar(){ document.getElementById('sidebar').classList.remove('op
 function showErr(id,msg){const el=document.getElementById(id);el.style.display='block';el.textContent=msg}
 function hideErr(id){document.getElementById(id).style.display='none'}
 
+function formatLastSeen(ts){
+  if(!ts) return 'offline';
+  const diff=Date.now()-ts;
+  const m=Math.floor(diff/60000);
+  if(m<1) return 'agora';
+  if(m<60) return `há ${m} min`;
+  const h=Math.floor(m/60);
+  if(h<24) return `há ${h}h`;
+  const d=Math.floor(h/24);
+  return `há ${d}d`;
+}
+
+function isUserOnline(u){
+  if(!u) return false;
+  const now=Date.now();
+  // se não tem lastActive, usa lastSeen ou createdAt
+  const last = u.lastActive || u.lastSeen || 0;
+  // se nunca teve lastActive e online=true mas foi há muito tempo, considera offline
+  if(!last && u.online){
+    // se criou há mais de 5 min e nunca atualizou, considera offline
+    if(u.createdAt && (now - u.createdAt) > 5*60*1000) return false;
+    return false; // sem timestamp = offline por segurança
+  }
+  // online apenas se lastActive nos últimos 90 segundos
+  return (now - last) < 90*1000;
+}
+
 function setupPresence(uid){
-  // Sistema de presença REAL com onDisconnect
-  const userStatusRef = firebase.database().ref('users/'+uid);
+  const userRef = firebase.database().ref('users/'+uid);
   const connectedRef = firebase.database().ref('.info/connected');
   
   connectedRef.on('value', (snap) => {
     if(snap.val()===true){
-      // quando conecta, marca online e configura onDisconnect para offline
-      userStatusRef.onDisconnect().update({
+      userRef.onDisconnect().update({
         online:false,
         lastSeen: firebase.database.ServerValue.TIMESTAMP,
-        lastActive: firebase.database.ServerValue.TIMESTAMP
+        lastActive: 0
       }).then(()=>{
-        userStatusRef.update({
+        userRef.update({
           online:true,
           lastSeen: firebase.database.ServerValue.TIMESTAMP,
           lastActive: firebase.database.ServerValue.TIMESTAMP
@@ -219,48 +191,36 @@ function setupPresence(uid){
     }
   });
 
-  // atualiza lastActive a cada 30s enquanto estiver na página
+  // heartbeat a cada 20s
   setInterval(()=>{
     if(currentUser && firebase.auth().currentUser){
-      userStatusRef.update({lastActive: firebase.database.ServerValue.TIMESTAMP, lastSeen: firebase.database.ServerValue.TIMESTAMP});
+      userRef.update({lastActive: firebase.database.ServerValue.TIMESTAMP, lastSeen: firebase.database.ServerValue.TIMESTAMP, online:true});
     }
-  }, 30000);
+  }, 20000);
 
-  // marca offline quando fecha aba/navegador
   window.addEventListener('beforeunload', ()=>{
-    userStatusRef.update({online:false, lastSeen: firebase.database.ServerValue.TIMESTAMP});
+    userRef.update({online:false, lastSeen: firebase.database.ServerValue.TIMESTAMP, lastActive:0});
   });
-
-  // detecta quando fica inativo (sem mouse/teclado por 5 min = away)
-  let awayTimeout;
-  function resetAwayTimer(){
-    if(currentUser){
-      userStatusRef.update({online:true, lastActive: firebase.database.ServerValue.TIMESTAMP});
-      clearTimeout(awayTimeout);
-      awayTimeout=setTimeout(()=>{
-        userStatusRef.update({online:false, away:true, lastSeen: firebase.database.ServerValue.TIMESTAMP});
-      }, 5*60*1000);
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden){
+      // não marca offline imediatamente ao minimizar, mas para de atualizar
+    } else {
+      userRef.update({online:true, lastActive: firebase.database.ServerValue.TIMESTAMP, lastSeen: firebase.database.ServerValue.TIMESTAMP});
     }
-  }
-  ['mousemove','keydown','click','scroll','touchstart'].forEach(ev=>{
-    window.addEventListener(ev, resetAwayTimer, {passive:true});
   });
-  resetAwayTimer();
 }
 
-function formatLastSeen(timestamp){
-  if(!timestamp) return 'offline';
-  const now=Date.now();
-  const diff=now-timestamp;
-  const mins=Math.floor(diff/60000);
-  if(mins<1) return 'agora há pouco';
-  if(mins<60) return `há ${mins} min`;
-  const hours=Math.floor(mins/60);
-  if(hours<24) return `há ${hours}h`;
-  const days=Math.floor(hours/24);
-  if(days===1) return 'há 1 dia';
-  if(days<7) return `há ${days} dias`;
-  return new Date(timestamp).toLocaleDateString('pt-BR');
+function fixPresence(){
+  if(!confirm('Isso vai marcar TODOS os usuários como offline (exceto você) para corrigir o bug de "todos online". Continuar?')) return;
+  firebase.database().ref('users').once('value').then(snap=>{
+    const val=snap.val()||{};
+    Object.keys(val).forEach(uid=>{
+      if(uid!==currentUser.id){
+        firebase.database().ref('users/'+uid).update({online:false, lastActive:0, lastSeen: Date.now() - 10*60*1000});
+      }
+    });
+    alert('Corrigido! Todos marcados como offline. Quem estiver realmente online vai voltar em 20s automaticamente.');
+  });
 }
 
 function setupAuth(){
@@ -282,7 +242,6 @@ function setupAuth(){
    setupPresence(uid);
    initChat();
   }else{
-   if(presenceRef){ presenceRef.off(); }
    document.getElementById('loginScreen').style.display='flex';
    document.getElementById('chatScreen').style.display='none';
   }
@@ -327,26 +286,13 @@ function initChat(){
   const val=snap.val()||{}; const list=Object.values(val).filter(u=>u && u.id);
   window.allUsers=list;
   renderUsers();
-  // conta online de forma REAL (verifica lastActive < 2 min)
-  const now=Date.now();
-  const onlineCount=list.filter(u=>{
-    if(u.online===true) return true;
-    // considera offline se lastActive > 2 min atrás
-    if(u.lastActive && (now - u.lastActive) < 2*60*1000) return true;
-    return false;
-  }).length;
-  document.getElementById('conn').textContent=list.length+' usuarios - '+onlineCount+' online (real)';
-  if(document.getElementById('createChannelModal').style.display==='flex') renderMembersChecklist();
+  const onlineCount=list.filter(u=>isUserOnline(u)).length;
+  document.getElementById('conn').textContent=list.length+' usuarios - '+onlineCount+' online agora';
  });
  firebase.database().ref('.info/connected').on('value',s=>{
    const sub=document.getElementById('chatSub');
    if(!s.val()){ sub.textContent='🔴 Desconectado'; sub.style.color='#ef4444'; return; }
-   if(currentChannelType==='dm'){ sub.textContent='💬 Privada'; sub.style.color='#6366f1'; }
-   else {
-     const ch = allChannelsCache[currentChannel];
-     if(ch && ch.members){ sub.textContent='🔒 '+Object.keys(ch.members).length+' membros'; sub.style.color='#f59e0b'; }
-     else sub.textContent='● Público';
-   }
+   sub.textContent='● Conectado';
  });
  selectChannel('geral','# geral','channel');
  setupGlobalNotifications();
@@ -356,6 +302,8 @@ function initChat(){
  document.getElementById('attachBtn').onclick=()=>document.getElementById('fileInput').click();
  document.getElementById('fileInput').onchange=(e)=>{const f=e.target.files[0]; if(f) showFilePreview(f); e.target.value='';};
  window.addEventListener('focus', ()=>{ document.title=originalTitle; if(currentChannel){ clearUnread(currentChannel); markAsRead(); } });
+ // re-render a cada 30s para atualizar "há X min"
+ setInterval(()=>{ if(window.allUsers) renderUsers(document.getElementById('search').value); }, 30000);
 }
 function renderChannelList(channelsObj){
  const cl=document.getElementById('chanList'); cl.innerHTML='';
@@ -388,23 +336,21 @@ function renderUsers(filter=''){
  if(filter){const f=filter.toLowerCase(); list=list.filter(u=> ((u.nome||'')+' '+(u.cargo||'')+' '+(u.email||'')).toLowerCase().includes(f))}
  if(list.length===0){cont.innerHTML='<div style=color:#6b7280;font-size:13px;padding:8px>Nenhum usuario.</div>';return}
  cont.innerHTML='';
- const now=Date.now();
  list.sort((a,b)=>{
-   const aOnline = a.online && (!a.lastActive || (now - a.lastActive) < 2*60*1000);
-   const bOnline = b.online && (!b.lastActive || (now - b.lastActive) < 2*60*1000);
-   return (bOnline?1:0)-(aOnline?1:0);
+   const aOn=isUserOnline(a)?1:0;
+   const bOn=isUserOnline(b)?1:0;
+   return bOn-aOn;
  }).forEach(u=>{
   const nome=u.nome|| (u.email?u.email.split('@')[0]:'Usuario');
   const dmId = [currentUser.id, u.id].sort().join('_');
   const unread = unreadCounts[dmId]||0;
-  // verifica se realmente online (lastActive < 2min)
-  const isReallyOnline = u.online && (!u.lastActive || (now - u.lastActive) < 2*60*1000);
-  const statusText = isReallyOnline ? 'online' : (u.lastSeen ? 'visto '+formatLastSeen(u.lastSeen) : 'offline');
-  const statusClass = isReallyOnline ? 'status-online' : 'status-offline';
+  const online = isUserOnline(u);
+  const statusText = online ? 'online agora' : (u.lastSeen ? 'visto '+formatLastSeen(u.lastSeen) : 'offline');
+  const statusClass = online ? 'status-online' : 'status-offline';
   const d=document.createElement('div');d.style.cssText='display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;cursor:pointer;color:#d1d5db;position:relative';
   if(unread>0){ d.style.background='#1f2937'; d.style.border='1px solid #ef444433'; }
   d.onmouseenter=()=>{ if(unread===0) d.style.background='#1f2937'; }; d.onmouseleave=()=>{ if(unread===0) d.style.background='transparent'; };
-  d.innerHTML=`<div style="position:relative"><div style="width:32px;height:32px;border-radius:50%;background:${u.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;font-size:12px">${nome[0].toUpperCase()}</div><div class="status-dot ${statusClass}" style="position:absolute;bottom:-2px;right:-2px"></div></div><div style="flex:1"><div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px">${nome} ${unread>0?`<span class="badge badge-dm">${unread>99?'99+':unread}</span>`:''}</div><div style="font-size:11px;color:${isReallyOnline?'#22c55e':'#6b7280'}">${u.cargo||u.email} • ${statusText}</div></div>`;
+  d.innerHTML=`<div style="position:relative"><div style="width:32px;height:32px;border-radius:50%;background:${u.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;font-size:12px">${nome[0].toUpperCase()}</div><div class="status-dot ${statusClass}"></div></div><div style="flex:1"><div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px">${nome} ${unread>0?`<span class="badge badge-dm">${unread>99?'99+':unread}</span>`:''}</div><div style="font-size:11px;color:${online?'#22c55e':'#6b7280'}">${u.cargo||u.email} • ${statusText}</div></div>`;
   d.onclick=()=>{ selectUser(u); closeSidebar(); };
   cont.appendChild(d);
  });
@@ -542,16 +488,10 @@ function getReadStatus(msgKey, msg){
  const reads = Object.values(readsCache).filter(r=>r.userId!==currentUser.id);
  if(reads.length===0) return {icon:'✓', text:'Enviado', cls:'read-sent'};
  let seenBy=[];
- reads.forEach(r=>{
-   if(r.lastMessageTime && r.lastMessageTime >= msg.timestamp) seenBy.push(r);
- });
+ reads.forEach(r=>{ if(r.lastMessageTime && r.lastMessageTime >= msg.timestamp) seenBy.push(r); });
  if(seenBy.length===0) return {icon:'✓✓', text:'Entregue', cls:'read-delivered'};
- if(currentChannelType==='dm'){
-   return {icon:'✓✓', text:'Visualizado por '+seenBy[0].nome, cls:'read-seen-blue'};
- } else {
-   if(seenBy.length===1) return {icon:'✓✓', text:'Visto por '+seenBy[0].nome, cls:'read-seen'};
-   return {icon:'✓✓', text:'Visto por '+seenBy.length, cls:'read-seen'};
- }
+ if(currentChannelType==='dm'){ return {icon:'✓✓', text:'Visualizado por '+seenBy[0].nome, cls:'read-seen-blue'}; }
+ else { if(seenBy.length===1) return {icon:'✓✓', text:'Visto por '+seenBy[0].nome, cls:'read-seen'}; return {icon:'✓✓', text:'Visto por '+seenBy.length, cls:'read-seen'}; }
 }
 function updateReadStatus(msgKey, msg){
  const el=document.getElementById('read-'+msgKey);
@@ -577,7 +517,7 @@ function addMsg(m, key){
  if(m.text) content+=`<div style="margin-top:4px;background:${isMe?'#eef2ff':'white'};border:1px solid #e2e8f0;padding:10px 12px;border-radius:12px;font-size:14px;color:#1e293b;max-width:520px;word-break:break-word">${escapeHtml(m.text)}</div>`;
  if(m.fileUrl){
    const isImage = m.fileType && m.fileType.startsWith('image/');
-   if(isImage) content+=`<a href="${m.fileUrl}" target="_blank"><img src="${m.fileUrl}" style="max-width:200px;max-height:200px;border-radius:10px;margin-top:8px;border:1px solid #e2e8f0" loading="lazy"></a><div style="font-size:12px;color:#64748b;margin-top:4px">${m.fileName} • <a href="${m.fileUrl}" target="_blank" download style="color:#6366f1">Baixar</a></div>`;
+   if(isImage) content+=`<a href="${m.fileUrl}" target="_blank"><img src="${m.fileUrl}" style="max-width:200px;max-height:200px;border-radius:10px;margin-top:8px;border:1px solid #e2e8f0" loading="lazy"></a><div style="font-size:12px;color:#64748b;margin-top:4px">${m.fileName}</div>`;
    else content+=`<div style="display:flex;align-items:center;gap:10px;background:#f1f5f9;padding:10px;border-radius:10px;margin-top:8px;border:1px solid #e2e8f0"><div style="font-size:24px">📄</div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#111827">${m.fileName||'arquivo'}</div></div><a href="${m.fileUrl}" target="_blank" download style="padding:6px 12px;background:#6366f1;color:white;border-radius:8px;text-decoration:none;font-size:12px">Baixar</a></div>`;
  }
  const canDelete = isMe || isAdmin();
@@ -761,26 +701,14 @@ function renderAdminUsers(){
  const map={}; users.forEach(u=>{ if(u && u.id) map[u.id]=u; });
  const list=Object.values(map);
  document.getElementById('adminUserCount').textContent=list.length;
- cont.innerHTML=`<div style="margin-bottom:12px;font-size:13px;color:#94a3b8">Total: ${list.length} usuários - presença real corrigida</div>`;
+ cont.innerHTML=`<div style="margin-bottom:12px;font-size:13px;color:#94a3b8">Clique em "fix" na lateral ou no botão abaixo para corrigir todos offline</div>`;
  list.sort((a,b)=> (a.email||'').localeCompare(b.email||'')).forEach(u=>{
    const isSelf = u.id===currentUser.id;
    const isAdminUser = ADMIN_EMAILS.includes((u.email||'').toLowerCase());
-   const now=Date.now();
-   const isOnline = u.online && (!u.lastActive || (now - u.lastActive) < 2*60*1000);
+   const online = isUserOnline(u);
    const div=document.createElement('div');
    div.style.cssText='display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #334155;border-radius:10px;margin-bottom:8px;background:#0f172a';
-   div.innerHTML=`
-     <div style="width:40px;height:40px;border-radius:50%;background:${u.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700">${(u.nome||'U')[0].toUpperCase()}</div>
-     <div style="flex:1">
-       <div style="font-weight:600;color:white">${u.nome||'Sem nome'} ${isAdminUser?'<span style="background:#7c3aed;color:white;font-size:10px;padding:2px 6px;border-radius:4px">ADMIN</span>':''}</div>
-       <div style="font-size:12px;color:#94a3b8">${u.email||''} • ${u.cargo||''}</div>
-       <div style="font-size:11px;color:${isOnline?'#22c55e':'#6b7280'}">${isOnline?'🟢 online':('⚫ '+formatLastSeen(u.lastSeen))}</div>
-     </div>
-     <div style="display:flex;flex-direction:column;gap:6px">
-       <button onclick="openEditUser('${u.id}')" style="padding:6px 12px;border-radius:6px;border:1px solid #334155;background:#1f2937;color:#94a3b8;cursor:pointer;font-size:12px">✏️ Editar</button>
-       <button onclick="adminDeleteUser('${u.id}','${(u.nome||'').replace(/'/g,"")}')" style="padding:6px 12px;border-radius:6px;border:1px solid #7f1d1d;background:#7f1d1d22;color:#f87171;cursor:pointer;font-size:12px" ${isSelf?'disabled':''}>🗑️</button>
-     </div>
-   `;
+   div.innerHTML=`<div style="width:40px;height:40px;border-radius:50%;background:${u.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700">${(u.nome||'U')[0].toUpperCase()}</div><div style="flex:1"><div style="font-weight:600;color:white">${u.nome||'Sem nome'} ${isAdminUser?'<span style="background:#7c3aed;color:white;font-size:10px;padding:2px 6px;border-radius:4px">ADMIN</span>':''}</div><div style="font-size:12px;color:#94a3b8">${u.email||''}</div><div style="font-size:11px;color:${online?'#22c55e':'#6b7280'}">${online?'🟢 online agora':'⚫ '+formatLastSeen(u.lastSeen||u.lastActive)}</div></div><div style="display:flex;flex-direction:column;gap:6px"><button onclick="openEditUser('${u.id}')" style="padding:6px 12px;border-radius:6px;border:1px solid #334155;background:#1f2937;color:#94a3b8;cursor:pointer;font-size:12px">✏️</button><button onclick="adminDeleteUser('${u.id}','${(u.nome||'').replace(/'/g,"")}')" style="padding:6px 12px;border-radius:6px;border:1px solid #7f1d1d;background:#7f1d1d22;color:#f87171;cursor:pointer;font-size:12px" ${isSelf?'disabled':''}>🗑️</button></div>`;
    cont.appendChild(div);
  });
 }
@@ -819,19 +747,18 @@ function renderAdminChannels(){
    const div=document.createElement('div');
    div.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:12px;border:1px solid #334155;border-radius:10px;margin-bottom:8px;background:#0f172a';
    const isPrivate = ch.members ? '🔒 Privado' : '🌐 Público';
-   const memberCount = ch.members ? Object.keys(ch.members).length : 'todos';
-   div.innerHTML=`<div><div style="font-weight:600;color:white">${ch.label} <span style="font-size:11px;color:#94a3b8">${isPrivate} • ${memberCount}</span></div><div style="font-size:11px;color:#6b7280">ID: ${ch.id}</div></div><div style="display:flex;gap:6px"><button onclick="selectChannel('${ch.id}','${ch.label}','channel'); closeAdminPanel(); closeSidebar();" style="padding:6px 12px;border-radius:6px;border:1px solid #334155;background:#1f2937;color:#94a3b8;cursor:pointer;font-size:12px">Abrir</button><button onclick="deleteChannel('${ch.id}','${ch.label}')" style="padding:6px 12px;border-radius:6px;border:1px solid #7f1d1d;background:#7f1d1d22;color:#f87171;cursor:pointer;font-size:12px" ${ch.id==='geral'?'disabled':''}>🗑️</button></div>`;
+   div.innerHTML=`<div><div style="font-weight:600;color:white">${ch.label} <span style="font-size:11px;color:#94a3b8">${isPrivate}</span></div><div style="font-size:11px;color:#6b7280">ID: ${ch.id}</div></div><div style="display:flex;gap:6px"><button onclick="selectChannel('${ch.id}','${ch.label}','channel'); closeAdminPanel(); closeSidebar();" style="padding:6px 12px;border-radius:6px;border:1px solid #334155;background:#1f2937;color:#94a3b8;cursor:pointer;font-size:12px">Abrir</button><button onclick="deleteChannel('${ch.id}','${ch.label}')" style="padding:6px 12px;border-radius:6px;border:1px solid #7f1d1d;background:#7f1d1d22;color:#f87171;cursor:pointer;font-size:12px" ${ch.id==='geral'?'disabled':''}>🗑️</button></div>`;
    cont.appendChild(div);
  });
 }
 function renderAdminMessages(){
  const cont=document.getElementById('adminTabContent');
- cont.innerHTML=`<div style="padding:12px;background:#7c3aed22;border:1px solid #7c3aed44;border-radius:10px;margin-bottom:12px"><div style="font-weight:600;color:white;margin-bottom:6px">👑 Poderes Admin:</div><ul style="font-size:13px;color:#d1d5db;margin-left:16px"><li>Excluir qualquer mensagem</li><li>Editar/excluir usuários</li><li>Excluir canais</li><li>Ver canais privados</li></ul></div><button onclick="if(confirm('Limpar TODAS as mensagens?')){ firebase.database().ref('channels').remove(); firebase.database().ref('dms').remove(); alert('Apagadas!'); }" style="width:100%;padding:12px;border-radius:10px;border:1px solid #7f1d1d;background:#7f1d1d22;color:#f87171;cursor:pointer;font-weight:600">⚠️ Limpar todas as mensagens</button>`;
+ cont.innerHTML=`<div style="padding:12px;background:#7c3aed22;border:1px solid #7c3aed44;border-radius:10px;margin-bottom:12px"><div style="font-weight:600;color:white;margin-bottom:6px">👑 Poderes Admin:</div><ul style="font-size:13px;color:#d1d5db;margin-left:16px"><li>Excluir qualquer mensagem</li><li>Editar/excluir usuários</li><li>Corrigir presença</li></ul></div><button onclick="if(confirm('Limpar TODAS as mensagens?')){ firebase.database().ref('channels').remove(); firebase.database().ref('dms').remove(); alert('Apagadas!'); }" style="width:100%;padding:12px;border-radius:10px;border:1px solid #7f1d1d;background:#7f1d1d22;color:#f87171;cursor:pointer;font-weight:600">⚠️ Limpar todas as mensagens</button>`;
 }
 async function doLogout(){
  try{
    if(currentUser){
-     await firebase.database().ref('users/'+currentUser.id).update({online:false, lastSeen: firebase.database.ServerValue.TIMESTAMP, lastActive: firebase.database.ServerValue.TIMESTAMP});
+     await firebase.database().ref('users/'+currentUser.id).update({online:false, lastSeen: firebase.database.ServerValue.TIMESTAMP, lastActive:0});
      await firebase.database().ref('users/'+currentUser.id).onDisconnect().cancel();
    }
  }catch(e){}
