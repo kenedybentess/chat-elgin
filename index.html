@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#111827">
-<title>Connect Elgin - Presença FIX FINAL</title>
+<title>Connect Elgin - Admin Fix Only</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
 body{background:#0f172a;color:#e2e8f0;overscroll-behavior:none}
@@ -58,14 +58,13 @@ input:focus{border-color:#6366f1}
 <body>
 <div id="loginScreen">
 <div class="card">
-<div class="logo"><div class="dot">C</div><div><b>Connect Elgin</b><div style="font-size:12px;color:#94a3b8">Presença REAL - offline funciona</div></div></div>
+<div class="logo"><div class="dot">C</div><div><b>Connect Elgin</b><div style="font-size:12px;color:#94a3b8">PC e Celular - Admin fix</div></div></div>
 <div class="tabs"><div id="tabLogin" class="tab active" onclick="switchTab('login')">Entrar</div><div id="tabReg" class="tab" onclick="switchTab('reg')">Criar conta</div></div>
 <div id="formLogin">
 <label>Email</label><input id="l_email" placeholder="seu@elgin.com.br" type="email" autocomplete="email">
 <label>Senha</label><input id="l_senha" placeholder="Sua senha" type="password" autocomplete="current-password">
 <div id="l_err" class="err"></div>
 <button id="btnLogin" class="btn">Entrar</button>
-<div style="text-align:center;margin-top:12px;font-size:13px;color:#94a3b8">Primeiro acesso? <span style="color:#6366f1;cursor:pointer" onclick="switchTab('reg')">Criar conta</span></div>
 </div>
 <div id="formReg" style="display:none">
 <label>Nome completo</label><input id="r_nome" placeholder="Ex: João Silva">
@@ -84,9 +83,19 @@ input:focus{border-color:#6366f1}
 <div id="overlay" class="overlay" onclick="closeSidebar()"></div>
 <div id="chatScreen">
 <div class="side" id="sidebar">
-<div style="padding:18px;border-bottom:1px solid #1f2937;display:flex;justify-content:space-between;align-items:center"><b style="color:white">Connect</b><div style="display:flex;gap:6px"><button id="adminBtn" onclick="openAdminPanel()" style="display:none;background:#7c3aed;color:white;border:none;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:12px">👑</button><button id="notifBtn" onclick="toggleNotifications()" style="background:#1f2937;color:#94a3b8;border:none;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:12px">🔔</button><button onclick="doLogout()" style="background:#1f2937;color:#94a3b8;border:none;padding:6px 10px;border-radius:8px;cursor:pointer">Sair</button></div></div>
+<div style="padding:18px;border-bottom:1px solid #1f2937;display:flex;justify-content:space-between;align-items:center"><b style="color:white">Connect</b><div style="display:flex;gap:6px"><button id="adminBtn" onclick="openAdminPanel()" style="display:none;background:#7c3aed;color:white;border:none;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:12px">👑 Admin</button><button id="notifBtn" onclick="toggleNotifications()" style="background:#1f2937;color:#94a3b8;border:none;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:12px">🔔</button><button onclick="doLogout()" style="background:#1f2937;color:#94a3b8;border:none;padding:6px 10px;border-radius:8px;cursor:pointer">Sair</button></div></div>
 <div style="padding:12px"><div style="font-size:11px;color:#6b7280;letter-spacing:1px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><span>CANAIS</span><button onclick="openCreateChannelModal()" style="width:22px;height:22px;border-radius:6px;border:1px solid #2a3441;background:#1f2937;color:#9ca3af;cursor:pointer;font-weight:700">+</button></div><div id="chanList"></div></div>
-<div style="padding:12px;flex:1;overflow:auto"><div style="font-size:11px;color:#6b7280;letter-spacing:1px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><span>EQUIPE</span><div style="display:flex;gap:6px"><span id="totalUnread" style="display:none" class="badge">0</span><button onclick="fixPresence()" title="Corrigir presença (admin)" style="font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid #334155;background:#0f172a;color:#6b7280;cursor:pointer">fix</button></div></div><input id="search" placeholder="Buscar..." style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid #1f2937;background:#0f172a;color:white;margin-bottom:10px"><div id="userList"></div><div id="conn" style="font-size:11px;color:#6b7280;margin-top:10px"></div></div>
+<div style="padding:12px;flex:1;overflow:auto">
+<div style="font-size:11px;color:#6b7280;letter-spacing:1px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+<span>EQUIPE</span>
+<div style="display:flex;gap:6px;align-items:center">
+<span id="totalUnread" style="display:none" class="badge">0</span>
+<button id="fixBtn" onclick="fixPresence()" style="display:none;font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid #f59e0b;background:#f59e0b22;color:#fbbf24;cursor:pointer" title="Só admin vê - corrige offline">🔧 fix</button>
+</div>
+</div>
+<input id="search" placeholder="Buscar..." style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid #1f2937;background:#0f172a;color:white;margin-bottom:10px"><div id="userList"></div><div id="conn" style="font-size:11px;color:#6b7280;margin-top:10px"></div>
+<div id="adminOnlyNote" style="display:none;margin-top:10px;padding:8px;background:#7c3aed22;border:1px solid #7c3aed44;border-radius:8px;font-size:11px;color:#c4b5fd">👑 Você é admin (kenedybentess@gmail.com) - vê botão fix e pode editar/excluir</div>
+</div>
 </div>
 <div class="main">
 <div style="height:60px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;padding:0 12px;justify-content:space-between;background:white">
@@ -105,12 +114,11 @@ input:focus{border-color:#6366f1}
 
 <div id="manageMembersModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9997;align-items:center;justify-content:center;padding:20px"><div style="background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:420px;width:100%;overflow:hidden"><div style="padding:16px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center"><b style="color:white" id="manageTitle">Gerenciar membros</b><button onclick="closeManageMembers()" style="width:32px;height:32px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">✕</button></div><div style="padding:16px;max-height:60vh;overflow:auto"><div id="manageChecklist" style="border:1px solid #334155;border-radius:10px;padding:8px;background:#0f172a;max-height:300px;overflow:auto"></div></div><div style="padding:12px 16px;background:#0f172a;display:flex;gap:10px;justify-content:flex-end"><button onclick="closeManageMembers()" style="padding:10px 16px;border-radius:10px;border:1px solid #334155;background:transparent;color:#94a3b8;cursor:pointer">Cancelar</button><button onclick="saveMembers()" style="padding:10px 20px;border-radius:10px;border:none;background:#6366f1;color:white;cursor:pointer">Salvar</button></div></div></div>
 
-<div id="adminPanelModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;align-items:center;justify-content:center;padding:20px"><div style="background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:600px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column"><div style="padding:16px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#7c3aed,#6366f1)"><b style="color:white">👑 Admin</b><button onclick="closeAdminPanel()" style="width:32px;height:32px;border-radius:8px;border:1px solid #ffffff33;background:#00000033;color:white;cursor:pointer">✕</button></div><div style="padding:12px;display:flex;gap:8px;border-bottom:1px solid #334155;background:#0f172a"><button onclick="switchAdminTab('users')" id="adminTabUsers" style="flex:1;padding:10px;border-radius:8px;border:1px solid #6366f1;background:#6366f122;color:white;cursor:pointer;font-weight:600">👥 (<span id="adminUserCount">0</span>)</button><button onclick="switchAdminTab('channels')" id="adminTabChannels" style="flex:1;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">📢</button><button onclick="switchAdminTab('messages')" id="adminTabMessages" style="flex:1;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">💬</button></div><div id="adminTabContent" style="padding:16px;overflow:auto;flex:1;max-height:60vh"></div><div style="padding:12px 16px;background:#0f172a;border-top:1px solid #334155"><button onclick="fixPresence()" style="width:100%;padding:10px;border-radius:8px;border:1px solid #f59e0b;background:#f59e0b22;color:#fbbf24;cursor:pointer;margin-bottom:8px">🔧 Corrigir todos offline (limpar fantasmas)</button><button onclick="closeAdminPanel()" style="width:100%;padding:8px 16px;border-radius:8px;border:1px solid #334155;background:transparent;color:#94a3b8;cursor:pointer">Fechar</button></div></div></div>
+<div id="adminPanelModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;align-items:center;justify-content:center;padding:20px"><div style="background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:600px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column"><div style="padding:16px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#7c3aed,#6366f1)"><b style="color:white">👑 Admin - kenedybentess@gmail.com</b><button onclick="closeAdminPanel()" style="width:32px;height:32px;border-radius:8px;border:1px solid #ffffff33;background:#00000033;color:white;cursor:pointer">✕</button></div><div style="padding:12px;display:flex;gap:8px;border-bottom:1px solid #334155;background:#0f172a"><button onclick="switchAdminTab('users')" id="adminTabUsers" style="flex:1;padding:10px;border-radius:8px;border:1px solid #6366f1;background:#6366f122;color:white;cursor:pointer;font-weight:600">👥 (<span id="adminUserCount">0</span>)</button><button onclick="switchAdminTab('channels')" id="adminTabChannels" style="flex:1;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">📢</button><button onclick="switchAdminTab('messages')" id="adminTabMessages" style="flex:1;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">💬</button></div><div id="adminTabContent" style="padding:16px;overflow:auto;flex:1;max-height:60vh"></div><div style="padding:12px 16px;background:#0f172a;border-top:1px solid #334155"><button onclick="fixPresence()" style="width:100%;padding:10px;border-radius:8px;border:1px solid #f59e0b;background:#f59e0b22;color:#fbbf24;cursor:pointer;margin-bottom:8px">🔧 Corrigir todos offline (só admin vê)</button><button onclick="closeAdminPanel()" style="width:100%;padding:8px 16px;border-radius:8px;border:1px solid #334155;background:transparent;color:#94a3b8;cursor:pointer">Fechar</button></div></div></div>
 
 <div id="editUserModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10001;align-items:center;justify-content:center;padding:20px"><div style="background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:400px;width:100%;overflow:hidden"><div style="padding:16px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center"><b style="color:white">✏️ Editar Usuário</b><button onclick="closeEditUser()" style="width:32px;height:32px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">✕</button></div><div style="padding:16px"><input type="hidden" id="editUserId"><label style="font-size:12px;color:#94a3b8;margin-bottom:4px;display:block">Nome</label><input id="editUserNome" style="width:100%;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:white;margin-bottom:10px;font-size:16px"><label style="font-size:12px;color:#94a3b8;margin-bottom:4px;display:block">Cargo</label><input id="editUserCargo" style="width:100%;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:white;margin-bottom:10px;font-size:16px"><label style="font-size:12px;color:#94a3b8;margin-bottom:4px;display:block">Email</label><input id="editUserEmail" disabled style="width:100%;padding:10px;border-radius:8px;border:1px solid #334155;background:#1f2937;color:#6b7280;margin-bottom:10px"><label style="font-size:12px;color:#94a3b8;margin-bottom:4px;display:block">Cor avatar</label><input id="editUserColor" type="color" style="width:100%;height:40px;border-radius:8px;border:1px solid #334155;background:#0f172a;cursor:pointer"><div id="editUserErr" style="display:none;background:#7f1d1d33;border:1px solid #7f1d1d;color:#fecaca;padding:8px;border-radius:8px;font-size:12px;margin-top:10px"></div></div><div style="padding:12px 16px;background:#0f172a;display:flex;gap:10px;justify-content:flex-end"><button onclick="closeEditUser()" style="padding:10px 16px;border-radius:10px;border:1px solid #334155;background:transparent;color:#94a3b8;cursor:pointer">Cancelar</button><button onclick="saveEditUser()" style="padding:10px 20px;border-radius:10px;border:none;background:#7c3aed;color:white;cursor:pointer;font-weight:700">Salvar</button></div></div></div>
 
 <div id="uploadInfo" style="padding:8px 14px;background:#eef2ff;border-top:1px solid #e2e8f0;display:none"><div id="uploadText" style="font-size:13px;color:#4338ca"></div><div style="height:4px;background:#e2e8f0;border-radius:2px;margin-top:6px;overflow:hidden"><div id="progressBar" style="height:100%;background:#6366f1;width:0%;transition:.2s"></div></div></div>
-<audio id="notifSound" preload="auto"></audio>
 <form id="msgForm" style="padding:10px;background:white;border-top:1px solid #e2e8f0;display:flex;gap:8px;align-items:center"><button type="button" id="attachBtn" style="width:44px;height:44px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;cursor:pointer;font-size:20px;flex-shrink:0">📎</button><input type="file" id="fileInput" style="display:none" accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"><input id="msgInput" placeholder="Digite uma mensagem..." style="flex:1;padding:12px 14px;border-radius:10px;border:1px solid #e2e8f0;background:#ffffff;color:#111827;font-size:16px"><button type="submit" style="padding:12px 18px;border-radius:10px;border:none;background:#6366f1;color:white;font-weight:700;min-width:60px">➤</button></form>
 </div>
 </div>
@@ -143,86 +151,37 @@ function openSidebar(){ document.getElementById('sidebar').classList.add('open')
 function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
 function showErr(id,msg){const el=document.getElementById(id);el.style.display='block';el.textContent=msg}
 function hideErr(id){document.getElementById(id).style.display='none'}
-
-function formatLastSeen(ts){
-  if(!ts) return 'offline';
-  const diff=Date.now()-ts;
-  const m=Math.floor(diff/60000);
-  if(m<1) return 'agora';
-  if(m<60) return `há ${m} min`;
-  const h=Math.floor(m/60);
-  if(h<24) return `há ${h}h`;
-  const d=Math.floor(h/24);
-  return `há ${d}d`;
-}
-
+function formatLastSeen(ts){ if(!ts) return 'offline'; const diff=Date.now()-ts; const m=Math.floor(diff/60000); if(m<1) return 'agora'; if(m<60) return `há ${m} min`; const h=Math.floor(m/60); if(h<24) return `há ${h}h`; const d=Math.floor(h/24); return `há ${d}d`; }
 function isUserOnline(u){
   if(!u) return false;
   const now=Date.now();
-  // se não tem lastActive, usa lastSeen ou createdAt
   const last = u.lastActive || u.lastSeen || 0;
-  // se nunca teve lastActive e online=true mas foi há muito tempo, considera offline
-  if(!last && u.online){
-    // se criou há mais de 5 min e nunca atualizou, considera offline
-    if(u.createdAt && (now - u.createdAt) > 5*60*1000) return false;
-    return false; // sem timestamp = offline por segurança
-  }
-  // online apenas se lastActive nos últimos 90 segundos
+  if(!last && u.online){ if(u.createdAt && (now - u.createdAt) > 5*60*1000) return false; return false; }
   return (now - last) < 90*1000;
 }
-
 function setupPresence(uid){
   const userRef = firebase.database().ref('users/'+uid);
   const connectedRef = firebase.database().ref('.info/connected');
-  
   connectedRef.on('value', (snap) => {
     if(snap.val()===true){
-      userRef.onDisconnect().update({
-        online:false,
-        lastSeen: firebase.database.ServerValue.TIMESTAMP,
-        lastActive: 0
-      }).then(()=>{
-        userRef.update({
-          online:true,
-          lastSeen: firebase.database.ServerValue.TIMESTAMP,
-          lastActive: firebase.database.ServerValue.TIMESTAMP
-        });
+      userRef.onDisconnect().update({online:false,lastSeen: firebase.database.ServerValue.TIMESTAMP,lastActive:0}).then(()=>{
+        userRef.update({online:true,lastSeen: firebase.database.ServerValue.TIMESTAMP,lastActive: firebase.database.ServerValue.TIMESTAMP});
       });
     }
   });
-
-  // heartbeat a cada 20s
-  setInterval(()=>{
-    if(currentUser && firebase.auth().currentUser){
-      userRef.update({lastActive: firebase.database.ServerValue.TIMESTAMP, lastSeen: firebase.database.ServerValue.TIMESTAMP, online:true});
-    }
-  }, 20000);
-
-  window.addEventListener('beforeunload', ()=>{
-    userRef.update({online:false, lastSeen: firebase.database.ServerValue.TIMESTAMP, lastActive:0});
-  });
-  document.addEventListener('visibilitychange', ()=>{
-    if(document.hidden){
-      // não marca offline imediatamente ao minimizar, mas para de atualizar
-    } else {
-      userRef.update({online:true, lastActive: firebase.database.ServerValue.TIMESTAMP, lastSeen: firebase.database.ServerValue.TIMESTAMP});
-    }
-  });
+  setInterval(()=>{ if(currentUser && firebase.auth().currentUser){ userRef.update({lastActive: firebase.database.ServerValue.TIMESTAMP, lastSeen: firebase.database.ServerValue.TIMESTAMP, online:true}); } }, 20000);
+  window.addEventListener('beforeunload', ()=>{ userRef.update({online:false, lastSeen: firebase.database.ServerValue.TIMESTAMP, lastActive:0}); });
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden){ userRef.update({online:true, lastActive: firebase.database.ServerValue.TIMESTAMP, lastSeen: firebase.database.ServerValue.TIMESTAMP}); } });
 }
-
 function fixPresence(){
-  if(!confirm('Isso vai marcar TODOS os usuários como offline (exceto você) para corrigir o bug de "todos online". Continuar?')) return;
+  if(!isAdmin()){ alert('Só admin pode usar o fix'); return; }
+  if(!confirm('Marcar todos offline exceto você? Quem estiver online volta em 20s.')) return;
   firebase.database().ref('users').once('value').then(snap=>{
     const val=snap.val()||{};
-    Object.keys(val).forEach(uid=>{
-      if(uid!==currentUser.id){
-        firebase.database().ref('users/'+uid).update({online:false, lastActive:0, lastSeen: Date.now() - 10*60*1000});
-      }
-    });
-    alert('Corrigido! Todos marcados como offline. Quem estiver realmente online vai voltar em 20s automaticamente.');
+    Object.keys(val).forEach(uid=>{ if(uid!==currentUser.id){ firebase.database().ref('users/'+uid).update({online:false, lastActive:0, lastSeen: Date.now() - 10*60*1000}); } });
+    alert('Corrigido! Agora só quem estiver realmente usando vai aparecer online.');
   });
 }
-
 function setupAuth(){
  firebase.auth().onAuthStateChanged(async (user)=>{
   if(user){
@@ -289,31 +248,25 @@ function initChat(){
   const onlineCount=list.filter(u=>isUserOnline(u)).length;
   document.getElementById('conn').textContent=list.length+' usuarios - '+onlineCount+' online agora';
  });
- firebase.database().ref('.info/connected').on('value',s=>{
-   const sub=document.getElementById('chatSub');
-   if(!s.val()){ sub.textContent='🔴 Desconectado'; sub.style.color='#ef4444'; return; }
-   sub.textContent='● Conectado';
- });
+ firebase.database().ref('.info/connected').on('value',s=>{ const sub=document.getElementById('chatSub'); if(!s.val()){ sub.textContent='🔴 Desconectado'; sub.style.color='#ef4444'; return; } sub.textContent='● Conectado'; });
  selectChannel('geral','# geral','channel');
  setupGlobalNotifications();
- if(isAdmin()){ document.getElementById('adminBtn').style.display='inline-block'; }
+ if(isAdmin()){
+   document.getElementById('adminBtn').style.display='inline-block';
+   document.getElementById('fixBtn').style.display='inline-block';
+   document.getElementById('adminOnlyNote').style.display='block';
+ }
  document.getElementById('search').oninput=(e)=>renderUsers(e.target.value);
  document.getElementById('msgForm').onsubmit=(e)=>{e.preventDefault();sendMsg()};
  document.getElementById('attachBtn').onclick=()=>document.getElementById('fileInput').click();
  document.getElementById('fileInput').onchange=(e)=>{const f=e.target.files[0]; if(f) showFilePreview(f); e.target.value='';};
  window.addEventListener('focus', ()=>{ document.title=originalTitle; if(currentChannel){ clearUnread(currentChannel); markAsRead(); } });
- // re-render a cada 30s para atualizar "há X min"
  setInterval(()=>{ if(window.allUsers) renderUsers(document.getElementById('search').value); }, 30000);
 }
 function renderChannelList(channelsObj){
  const cl=document.getElementById('chanList'); cl.innerHTML='';
  let list = Object.values(channelsObj);
- list = list.filter(ch=>{
-   if(isAdmin()) return true;
-   if(ch.id==='geral') return true;
-   if(!ch.members) return true;
-   return ch.members[currentUser.id] || ch.createdBy===currentUser.id;
- });
+ list = list.filter(ch=>{ if(isAdmin()) return true; if(ch.id==='geral') return true; if(!ch.members) return true; return ch.members[currentUser.id] || ch.createdBy===currentUser.id; });
  list = list.sort((a,b)=> (a.id==='geral'?-1:b.id==='geral'?1: a.label.localeCompare(b.label)));
  list.forEach(ch=>{
   const isActive = ch.id===currentChannel && currentChannelType==='channel';
@@ -336,11 +289,7 @@ function renderUsers(filter=''){
  if(filter){const f=filter.toLowerCase(); list=list.filter(u=> ((u.nome||'')+' '+(u.cargo||'')+' '+(u.email||'')).toLowerCase().includes(f))}
  if(list.length===0){cont.innerHTML='<div style=color:#6b7280;font-size:13px;padding:8px>Nenhum usuario.</div>';return}
  cont.innerHTML='';
- list.sort((a,b)=>{
-   const aOn=isUserOnline(a)?1:0;
-   const bOn=isUserOnline(b)?1:0;
-   return bOn-aOn;
- }).forEach(u=>{
+ list.sort((a,b)=>{ const aOn=isUserOnline(a)?1:0; const bOn=isUserOnline(b)?1:0; return bOn-aOn; }).forEach(u=>{
   const nome=u.nome|| (u.email?u.email.split('@')[0]:'Usuario');
   const dmId = [currentUser.id, u.id].sort().join('_');
   const unread = unreadCounts[dmId]||0;
@@ -414,7 +363,6 @@ function deleteChannel(id, label){
  if(!confirm('Excluir canal '+label+'?')) return;
  firebase.database().ref('channel_list/'+id).remove();
  firebase.database().ref('channels/'+id).remove();
- firebase.database().ref('channels/'+id+'/reads').remove();
  if(currentChannel===id) selectChannel('geral','# geral','channel');
 }
 let editingChannelId=null;
@@ -442,9 +390,7 @@ function saveMembers(){
  if(!editingChannelId) return;
  const checks = document.querySelectorAll('#manageChecklist input:checked');
  let members = {}; checks.forEach(c=>{ members[c.value]=true; }); members[currentUser.id]=true;
- if(Object.keys(members).length<=1){
-   if(confirm('Deixar canal público?')){ firebase.database().ref('channel_list/'+editingChannelId+'/members').remove(); closeManageMembers(); return; }
- }
+ if(Object.keys(members).length<=1){ if(confirm('Deixar canal público?')){ firebase.database().ref('channel_list/'+editingChannelId+'/members').remove(); closeManageMembers(); return; } }
  firebase.database().ref('channel_list/'+editingChannelId+'/members').set(members);
  closeManageMembers();
 }
@@ -460,19 +406,14 @@ function selectChannel(id,label,type='channel'){
  document.getElementById('msgs').innerHTML='';
  clearUnread(id);
  let basePath = type==='dm' ? 'dms/'+id : 'channels/'+id;
- if(!isAdmin() && type==='channel' && ch && ch.members && !ch.members[currentUser.id] && ch.createdBy!==currentUser.id){
-   document.getElementById('msgs').innerHTML='<div style="text-align:center;padding:40px;color:#64748b">🔒 Sem acesso</div>'; return;
- }
+ if(!isAdmin() && type==='channel' && ch && ch.members && !ch.members[currentUser.id] && ch.createdBy!==currentUser.id){ document.getElementById('msgs').innerHTML='<div style="text-align:center;padding:40px;color:#64748b">🔒 Sem acesso</div>'; return; }
  const ref=firebase.database().ref(basePath+'/messages').limitToLast(150);
  listeners.msg=ref;
  ref.on('child_added',snap=>{ const m=snap.val(); if(!m) return; messagesCache[snap.key]=m; addMsg(m, snap.key); if(m.userId!==currentUser.id){ setTimeout(()=>markAsRead(),500); } });
  ref.on('child_removed',snap=>{ const el=document.getElementById('msg-'+snap.key); if(el) el.remove(); delete messagesCache[snap.key]; });
  const readsRef=firebase.database().ref(basePath+'/reads');
  readsListener=readsRef;
- readsRef.on('value', snap=>{
-   readsCache=snap.val()||{};
-   Object.keys(messagesCache).forEach(k=>{ updateReadStatus(k, messagesCache[k]); });
- });
+ readsRef.on('value', snap=>{ readsCache=snap.val()||{}; Object.keys(messagesCache).forEach(k=>{ updateReadStatus(k, messagesCache[k]); }); });
  setTimeout(()=>markAsRead(),1000);
 }
 function markAsRead(){
@@ -517,7 +458,7 @@ function addMsg(m, key){
  if(m.text) content+=`<div style="margin-top:4px;background:${isMe?'#eef2ff':'white'};border:1px solid #e2e8f0;padding:10px 12px;border-radius:12px;font-size:14px;color:#1e293b;max-width:520px;word-break:break-word">${escapeHtml(m.text)}</div>`;
  if(m.fileUrl){
    const isImage = m.fileType && m.fileType.startsWith('image/');
-   if(isImage) content+=`<a href="${m.fileUrl}" target="_blank"><img src="${m.fileUrl}" style="max-width:200px;max-height:200px;border-radius:10px;margin-top:8px;border:1px solid #e2e8f0" loading="lazy"></a><div style="font-size:12px;color:#64748b;margin-top:4px">${m.fileName}</div>`;
+   if(isImage) content+=`<a href="${m.fileUrl}" target="_blank"><img src="${m.fileUrl}" style="max-width:200px;max-height:200px;border-radius:10px;margin-top:8px;border:1px solid #e2e8f0" loading="lazy"></a>`;
    else content+=`<div style="display:flex;align-items:center;gap:10px;background:#f1f5f9;padding:10px;border-radius:10px;margin-top:8px;border:1px solid #e2e8f0"><div style="font-size:24px">📄</div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#111827">${m.fileName||'arquivo'}</div></div><a href="${m.fileUrl}" target="_blank" download style="padding:6px 12px;background:#6366f1;color:white;border-radius:8px;text-decoration:none;font-size:12px">Baixar</a></div>`;
  }
  const canDelete = isMe || isAdmin();
@@ -606,27 +547,14 @@ function toggleNotifications(){
    notifSoundEnabled=!notifSoundEnabled; updateNotifBtn(); if(notifSoundEnabled) playNotifSound();
  }
 }
-function updateNotifBtn(){
- const btn=document.getElementById('notifBtn'); if(!btn) return;
- btn.textContent=notifSoundEnabled?'🔔':'🔕';
-}
+function updateNotifBtn(){ const btn=document.getElementById('notifBtn'); if(!btn) return; btn.textContent=notifSoundEnabled?'🔔':'🔕'; }
 function playNotifSound(){
- try{
-   const ctx=new (window.AudioContext||window.webkitAudioContext)();
-   const o=ctx.createOscillator(); const g=ctx.createGain();
-   o.type='sine'; o.frequency.value=880; o.connect(g); g.connect(ctx.destination);
-   g.gain.setValueAtTime(0.3, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime+0.3);
-   o.start(); o.stop(ctx.currentTime+0.3);
- }catch(e){}
+ try{ const ctx=new (window.AudioContext||window.webkitAudioContext)(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.type='sine'; o.frequency.value=880; o.connect(g); g.connect(ctx.destination); g.gain.setValueAtTime(0.3, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime+0.3); o.start(); o.stop(ctx.currentTime+0.3); }catch(e){}
 }
 function showBrowserNotification(title, body, channelId){
  if(!notifPermission || Notification.permission!=='granted') return;
  if(!document.hidden && currentChannel===channelId) return;
- try{
-   const n=new Notification(title, {body: body});
-   n.onclick=()=>{ window.focus(); if(channelId){ const ch=allChannelsCache[channelId]; if(ch) selectChannel(channelId, ch.label, 'channel'); else selectChannel(channelId, '#'+channelId, 'channel'); } n.close(); };
-   setTimeout(()=>n.close(),6000);
- }catch(e){}
+ try{ const n=new Notification(title, {body: body}); n.onclick=()=>{ window.focus(); if(channelId){ const ch=allChannelsCache[channelId]; if(ch) selectChannel(channelId, ch.label, 'channel'); else selectChannel(channelId, '#'+channelId, 'channel'); } n.close(); }; setTimeout(()=>n.close(),6000); }catch(e){}
 }
 function setupGlobalNotifications(){
  if(Notification && Notification.permission==='default'){ Notification.requestPermission().then(p=>{ notifPermission=p==='granted'; }); }
@@ -675,14 +603,8 @@ function setupGlobalNotifications(){
  });
  setTimeout(()=>{ initialLoadDone=true; }, 4000);
 }
-function clearUnread(channelId){
- if(unreadCounts[channelId]){ delete unreadCounts[channelId]; renderChannelList(allChannelsCache); renderUsers(); updateTotalUnread(); }
-}
-function openAdminPanel(){
- if(!isAdmin()){ alert('Acesso negado'); return; }
- document.getElementById('adminPanelModal').style.display='flex';
- switchAdminTab('users');
-}
+function clearUnread(channelId){ if(unreadCounts[channelId]){ delete unreadCounts[channelId]; renderChannelList(allChannelsCache); renderUsers(); updateTotalUnread(); } }
+function openAdminPanel(){ if(!isAdmin()){ alert('Acesso negado'); return; } document.getElementById('adminPanelModal').style.display='flex'; switchAdminTab('users'); }
 function closeAdminPanel(){ document.getElementById('adminPanelModal').style.display='none'; }
 function switchAdminTab(tab){
  document.getElementById('adminTabUsers').style.background=tab==='users'?'#6366f122':'#0f172a';
@@ -701,14 +623,14 @@ function renderAdminUsers(){
  const map={}; users.forEach(u=>{ if(u && u.id) map[u.id]=u; });
  const list=Object.values(map);
  document.getElementById('adminUserCount').textContent=list.length;
- cont.innerHTML=`<div style="margin-bottom:12px;font-size:13px;color:#94a3b8">Clique em "fix" na lateral ou no botão abaixo para corrigir todos offline</div>`;
+ cont.innerHTML=`<div style="margin-bottom:12px;font-size:13px;color:#94a3b8">Botão fix só aparece para admin</div>`;
  list.sort((a,b)=> (a.email||'').localeCompare(b.email||'')).forEach(u=>{
    const isSelf = u.id===currentUser.id;
    const isAdminUser = ADMIN_EMAILS.includes((u.email||'').toLowerCase());
    const online = isUserOnline(u);
    const div=document.createElement('div');
    div.style.cssText='display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #334155;border-radius:10px;margin-bottom:8px;background:#0f172a';
-   div.innerHTML=`<div style="width:40px;height:40px;border-radius:50%;background:${u.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700">${(u.nome||'U')[0].toUpperCase()}</div><div style="flex:1"><div style="font-weight:600;color:white">${u.nome||'Sem nome'} ${isAdminUser?'<span style="background:#7c3aed;color:white;font-size:10px;padding:2px 6px;border-radius:4px">ADMIN</span>':''}</div><div style="font-size:12px;color:#94a3b8">${u.email||''}</div><div style="font-size:11px;color:${online?'#22c55e':'#6b7280'}">${online?'🟢 online agora':'⚫ '+formatLastSeen(u.lastSeen||u.lastActive)}</div></div><div style="display:flex;flex-direction:column;gap:6px"><button onclick="openEditUser('${u.id}')" style="padding:6px 12px;border-radius:6px;border:1px solid #334155;background:#1f2937;color:#94a3b8;cursor:pointer;font-size:12px">✏️</button><button onclick="adminDeleteUser('${u.id}','${(u.nome||'').replace(/'/g,"")}')" style="padding:6px 12px;border-radius:6px;border:1px solid #7f1d1d;background:#7f1d1d22;color:#f87171;cursor:pointer;font-size:12px" ${isSelf?'disabled':''}>🗑️</button></div>`;
+   div.innerHTML=`<div style="width:40px;height:40px;border-radius:50%;background:${u.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700">${(u.nome||'U')[0].toUpperCase()}</div><div style="flex:1"><div style="font-weight:600;color:white">${u.nome||'Sem nome'} ${isAdminUser?'<span style="background:#7c3aed;color:white;font-size:10px;padding:2px 6px;border-radius:4px">ADMIN</span>':''}</div><div style="font-size:12px;color:#94a3b8">${u.email||''}</div><div style="font-size:11px;color:${online?'#22c55e':'#6b7280'}">${online?'🟢 online':'⚫ '+formatLastSeen(u.lastSeen||u.lastActive)}</div></div><div style="display:flex;flex-direction:column;gap:6px"><button onclick="openEditUser('${u.id}')" style="padding:6px 12px;border-radius:6px;border:1px solid #334155;background:#1f2937;color:#94a3b8;cursor:pointer;font-size:12px">✏️</button><button onclick="adminDeleteUser('${u.id}','${(u.nome||'').replace(/'/g,"")}')" style="padding:6px 12px;border-radius:6px;border:1px solid #7f1d1d;background:#7f1d1d22;color:#f87171;cursor:pointer;font-size:12px" ${isSelf?'disabled':''}>🗑️</button></div>`;
    cont.appendChild(div);
  });
 }
@@ -753,17 +675,11 @@ function renderAdminChannels(){
 }
 function renderAdminMessages(){
  const cont=document.getElementById('adminTabContent');
- cont.innerHTML=`<div style="padding:12px;background:#7c3aed22;border:1px solid #7c3aed44;border-radius:10px;margin-bottom:12px"><div style="font-weight:600;color:white;margin-bottom:6px">👑 Poderes Admin:</div><ul style="font-size:13px;color:#d1d5db;margin-left:16px"><li>Excluir qualquer mensagem</li><li>Editar/excluir usuários</li><li>Corrigir presença</li></ul></div><button onclick="if(confirm('Limpar TODAS as mensagens?')){ firebase.database().ref('channels').remove(); firebase.database().ref('dms').remove(); alert('Apagadas!'); }" style="width:100%;padding:12px;border-radius:10px;border:1px solid #7f1d1d;background:#7f1d1d22;color:#f87171;cursor:pointer;font-weight:600">⚠️ Limpar todas as mensagens</button>`;
+ cont.innerHTML=`<div style="padding:12px;background:#7c3aed22;border:1px solid #7c3aed44;border-radius:10px;margin-bottom:12px"><div style="font-weight:600;color:white;margin-bottom:6px">👑 Admin</div><ul style="font-size:13px;color:#d1d5db;margin-left:16px"><li>Excluir qualquer mensagem</li><li>Editar/excluir usuários</li><li>Botão fix só pra você</li></ul></div><button onclick="if(confirm('Limpar TODAS as mensagens?')){ firebase.database().ref('channels').remove(); firebase.database().ref('dms').remove(); alert('Apagadas!'); }" style="width:100%;padding:12px;border-radius:10px;border:1px solid #7f1d1d;background:#7f1d1d22;color:#f87171;cursor:pointer;font-weight:600">⚠️ Limpar todas as mensagens</button>`;
 }
 async function doLogout(){
- try{
-   if(currentUser){
-     await firebase.database().ref('users/'+currentUser.id).update({online:false, lastSeen: firebase.database.ServerValue.TIMESTAMP, lastActive:0});
-     await firebase.database().ref('users/'+currentUser.id).onDisconnect().cancel();
-   }
- }catch(e){}
- await firebase.auth().signOut();
- location.reload();
+ try{ if(currentUser){ await firebase.database().ref('users/'+currentUser.id).update({online:false, lastSeen: firebase.database.ServerValue.TIMESTAMP, lastActive:0}); await firebase.database().ref('users/'+currentUser.id).onDisconnect().cancel(); } }catch(e){}
+ await firebase.auth().signOut(); location.reload();
 }
 setTimeout(initFirebase,400);
 </script>
