@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Connect Elgin - Completo com Membros</title>
+<title>Connect Elgin - Completo com Não Lidas</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,sans-serif}
 body{background:#0f172a;color:#e2e8f0}
@@ -24,7 +24,7 @@ input:focus{border-color:#6366f1}
 .err{background:#7f1d1d33;border:1px solid #7f1d1d;color:#fecaca;padding:10px;border-radius:10px;font-size:13px;margin-top:12px;display:none}
 .ok{color:#22c55e;font-size:12px;margin-top:10px}
 #chatScreen{display:none;height:100vh;flex-direction:row}
-.side{width:300px;background:#111827;border-right:1px solid #1f2937;display:flex;flex-direction:column}
+.side{width:320px;background:#111827;border-right:1px solid #1f2937;display:flex;flex-direction:column}
 .main{flex:1;display:flex;flex-direction:column;background:#f8fafc}
 #msgInput{background:#ffffff !important;color:#111827 !important;-webkit-text-fill-color:#111827 !important;caret-color:#111827 !important}
 #msgInput::placeholder{color:#9ca3af !important}
@@ -33,6 +33,9 @@ input:focus{border-color:#6366f1}
 .msg-actions{opacity:0; transition:.2s; display:flex; gap:6px; margin-left:8px}
 .del-btn{background:#fee2e2;border:1px solid #fecaca;color:#dc2626;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:11px}
 .del-btn:hover{background:#fecaca}
+.badge{background:#ef4444;color:white;font-size:11px;font-weight:700;min-width:20px;height:20px;padding:0 6px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center}
+.badge-channel{background:#6366f1}
+.badge-dm{background:#ef4444}
 </style>
 </head>
 <body>
@@ -64,16 +67,16 @@ input:focus{border-color:#6366f1}
 
 <div id="chatScreen">
 <div class="side" id="sidebar">
-<div style="padding:18px;border-bottom:1px solid #1f2937;display:flex;justify-content:space-between;align-items:center"><b style="color:white">Connect</b><button onclick="doLogout()" style="background:#1f2937;color:#94a3b8;border:none;padding:6px 10px;border-radius:8px;cursor:pointer">Sair</button></div>
-<div style="padding:12px"><div style="font-size:11px;color:#6b7280;letter-spacing:1px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><span>CANAIS</span><button onclick="openCreateChannelModal()" title="Criar canal" style="width:22px;height:22px;border-radius:6px;border:1px solid #2a3441;background:#1f2937;color:#9ca3af;cursor:pointer;font-weight:700">+</button></div><div id="chanList"></div></div>
-<div style="padding:12px;flex:1;overflow:auto"><div style="font-size:11px;color:#6b7280;letter-spacing:1px;margin-bottom:8px">EQUIPE</div><input id="search" placeholder="Buscar usuários..." style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid #1f2937;background:#0f172a;color:white;margin-bottom:10px"><div id="userList"></div><div id="conn" style="font-size:11px;color:#6b7280;margin-top:10px"></div></div>
+<div style="padding:18px;border-bottom:1px solid #1f2937;display:flex;justify-content:space-between;align-items:center"><b style="color:white">Connect</b><div style="display:flex;gap:6px"><button id="notifBtn" onclick="toggleNotifications()" style="background:#1f2937;color:#94a3b8;border:none;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:12px">🔔</button><button onclick="doLogout()" style="background:#1f2937;color:#94a3b8;border:none;padding:6px 10px;border-radius:8px;cursor:pointer">Sair</button></div></div>
+<div style="padding:12px"><div style="font-size:11px;color:#6b7280;letter-spacing:1px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><span>CANAIS</span><button onclick="openCreateChannelModal()" style="width:22px;height:22px;border-radius:6px;border:1px solid #2a3441;background:#1f2937;color:#9ca3af;cursor:pointer;font-weight:700">+</button></div><div id="chanList"></div></div>
+<div style="padding:12px;flex:1;overflow:auto"><div style="font-size:11px;color:#6b7280;letter-spacing:1px;margin-bottom:8px;display:flex;justify-content:space-between"><span>EQUIPE</span><span id="totalUnread" style="display:none" class="badge">0</span></div><input id="search" placeholder="Buscar usuários..." style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid #1f2937;background:#0f172a;color:white;margin-bottom:10px"><div id="userList"></div><div id="conn" style="font-size:11px;color:#6b7280;margin-top:10px"></div></div>
 </div>
 <div class="main">
-<div style="height:60px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;padding:0 18px;justify-content:space-between;background:white"><div><b id="chatTitle">#geral</b><div id="chatSub" style="font-size:12px;color:#64748b">Realtime</div></div><div style="display:flex;gap:8px"><button id="notifBtn" onclick="toggleNotifications()" title="Ativar notificações" style="padding:6px 12px;border-radius:8px;border:1px solid #e2e8f0;background:white;color:#64748b;cursor:pointer;font-size:12px">🔔 Ativar som</button><button id="manageMembersBtn" onclick="openManageMembers()" style="display:none;padding:6px 12px;border-radius:8px;border:1px solid #e2e8f0;background:white;color:#6366f1;cursor:pointer;font-size:12px">👥 Gerenciar membros</button><button onclick="selectChannel('geral','# geral','channel')" style="padding:6px 12px;border-radius:8px;border:1px solid #e2e8f0;background:white;color:#6366f1;cursor:pointer;font-size:12px">Voltar #geral</button></div></div>
+<div style="height:60px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;padding:0 18px;justify-content:space-between;background:white"><div><b id="chatTitle">#geral</b><div id="chatSub" style="font-size:12px;color:#64748b">Realtime</div></div><div style="display:flex;gap:8px"><button id="manageMembersBtn" onclick="openManageMembers()" style="display:none;padding:6px 12px;border-radius:8px;border:1px solid #e2e8f0;background:white;color:#6366f1;cursor:pointer;font-size:12px">👥 Membros</button><button onclick="selectChannel('geral','# geral','channel')" style="padding:6px 12px;border-radius:8px;border:1px solid #e2e8f0;background:white;color:#6366f1;cursor:pointer;font-size:12px">Voltar #geral</button></div></div>
 <div id="msgs" style="flex:1;overflow:auto;padding:18px;background:#f8fafc"></div>
 
 <div id="filePreviewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;padding:20px">
-<div style="background:white;border-radius:16px;max-width:420px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+<div style="background:white;border-radius:16px;max-width:420px;width:100%;overflow:hidden">
 <div style="padding:16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center"><b style="color:#111827">Enviar arquivo?</b><button onclick="cancelFilePreview()" style="width:32px;height:32px;border-radius:8px;border:1px solid #e2e8f0;background:#f8fafc;cursor:pointer">✕</button></div>
 <div style="padding:16px">
 <img id="previewImg" style="display:none;max-width:100%;max-height:240px;border-radius:12px;margin:0 auto 12px;border:1px solid #e2e8f0">
@@ -85,37 +88,32 @@ input:focus{border-color:#6366f1}
 </div>
 
 <div id="createChannelModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9998;align-items:center;justify-content:center;padding:20px">
-<div style="background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:420px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+<div style="background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:420px;width:100%;overflow:hidden">
 <div style="padding:16px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center"><b style="color:white">Criar canal</b><button onclick="closeCreateChannelModal()" style="width:32px;height:32px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">✕</button></div>
 <div style="padding:16px;max-height:70vh;overflow:auto">
-<label style="color:#94a3b8;font-size:13px;margin-bottom:6px;display:block">Nome do canal</label>
-<input id="newChannelName" placeholder="Ex: ti, financeiro, rh" style="width:100%;padding:12px;border-radius:10px;border:1px solid #334155;background:#0f172a;color:white">
-<label style="color:#94a3b8;font-size:13px;margin:12px 0 6px;display:block">Tipo</label>
-<div style="display:flex;gap:8px;margin-bottom:12px"><button id="typePublic" onclick="setChannelType('public')" style="flex:1;padding:8px;border-radius:8px;border:1px solid #6366f1;background:#6366f122;color:white;font-size:13px;cursor:pointer">🌐 Público - todos veem</button><button id="typePrivate" onclick="setChannelType('private')" style="flex:1;padding:8px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;font-size:13px;cursor:pointer">🔒 Privado - só convidados</button></div>
+<input id="newChannelName" placeholder="Ex: ti, financeiro" style="width:100%;padding:12px;border-radius:10px;border:1px solid #334155;background:#0f172a;color:white">
+<div style="display:flex;gap:8px;margin:12px 0"><button id="typePublic" onclick="setChannelType('public')" style="flex:1;padding:8px;border-radius:8px;border:1px solid #6366f1;background:#6366f122;color:white;font-size:13px;cursor:pointer">🌐 Público</button><button id="typePrivate" onclick="setChannelType('private')" style="flex:1;padding:8px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;font-size:13px;cursor:pointer">🔒 Privado</button></div>
 <div id="membersSection" style="display:none">
-<label style="color:#94a3b8;font-size:13px;margin-bottom:6px;display:block">Atribuir pessoas (marque quem pode ver)</label>
+<label style="font-size:13px;margin-bottom:6px;display:block">Atribuir pessoas específicas:</label>
 <div id="membersChecklist" style="max-height:180px;overflow:auto;border:1px solid #334155;border-radius:10px;padding:8px;background:#0f172a"></div>
-<div style="font-size:11px;color:#64748b;margin-top:6px">Se não marcar ninguém, só você verá o canal</div>
 </div>
 <div id="createChanErr" style="display:none;background:#7f1d1d33;border:1px solid #7f1d1d;color:#fecaca;padding:8px;border-radius:8px;font-size:12px;margin-top:10px"></div>
 </div>
-<div style="padding:12px 16px;background:#0f172a;display:flex;gap:10px;justify-content:flex-end"><button onclick="closeCreateChannelModal()" style="padding:10px 16px;border-radius:10px;border:1px solid #334155;background:transparent;color:#94a3b8;cursor:pointer">Cancelar</button><button onclick="createChannel()" style="padding:10px 20px;border-radius:10px;border:none;background:#6366f1;color:white;cursor:pointer;font-weight:700">Criar canal</button></div>
+<div style="padding:12px 16px;background:#0f172a;display:flex;gap:10px;justify-content:flex-end"><button onclick="closeCreateChannelModal()" style="padding:10px 16px;border-radius:10px;border:1px solid #334155;background:transparent;color:#94a3b8;cursor:pointer">Cancelar</button><button onclick="createChannel()" style="padding:10px 20px;border-radius:10px;border:none;background:#6366f1;color:white;cursor:pointer;font-weight:700">Criar</button></div>
 </div>
 </div>
 
 <div id="manageMembersModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9997;align-items:center;justify-content:center;padding:20px">
 <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:420px;width:100%;overflow:hidden">
 <div style="padding:16px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center"><b style="color:white" id="manageTitle">Gerenciar membros</b><button onclick="closeManageMembers()" style="width:32px;height:32px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">✕</button></div>
-<div style="padding:16px;max-height:60vh;overflow:auto">
-<div id="manageChecklist" style="border:1px solid #334155;border-radius:10px;padding:8px;background:#0f172a;max-height:300px;overflow:auto"></div>
-<div style="font-size:11px;color:#64748b;margin-top:8px">Desmarque para remover pessoa do canal</div>
-</div>
-<div style="padding:12px 16px;background:#0f172a;display:flex;gap:10px;justify-content:flex-end"><button onclick="closeManageMembers()" style="padding:10px 16px;border-radius:10px;border:1px solid #334155;background:transparent;color:#94a3b8;cursor:pointer">Cancelar</button><button onclick="saveMembers()" style="padding:10px 20px;border-radius:10px;border:none;background:#6366f1;color:white;cursor:pointer;font-weight:700">Salvar</button></div>
+<div style="padding:16px;max-height:60vh;overflow:auto"><div id="manageChecklist" style="border:1px solid #334155;border-radius:10px;padding:8px;background:#0f172a;max-height:300px;overflow:auto"></div></div>
+<div style="padding:12px 16px;background:#0f172a;display:flex;gap:10px;justify-content:flex-end"><button onclick="closeManageMembers()" style="padding:10px 16px;border-radius:10px;border:1px solid #334155;background:transparent;color:#94a3b8;cursor:pointer">Cancelar</button><button onclick="saveMembers()" style="padding:10px 20px;border-radius:10px;border:none;background:#6366f1;color:white;cursor:pointer">Salvar</button></div>
 </div>
 </div>
 
 <div id="uploadInfo" style="padding:8px 14px;background:#eef2ff;border-top:1px solid #e2e8f0;display:none"><div id="uploadText" style="font-size:13px;color:#4338ca"></div><div style="height:4px;background:#e2e8f0;border-radius:2px;margin-top:6px;overflow:hidden"><div id="progressBar" style="height:100%;background:#6366f1;width:0%;transition:.2s"></div></div></div>
-<audio id="notifSound" preload="auto"><source src="data:audio/wav;base64,UklGRlQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YZQAAABkY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kYQ=="></source></audio><form id="msgForm" style="padding:14px;background:white;border-top:1px solid #e2e8f0;display:flex;gap:10px;align-items:center"><button type="button" id="attachBtn" title="Anexar" style="width:44px;height:44px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;cursor:pointer;font-size:20px;flex-shrink:0">📎</button><input type="file" id="fileInput" style="display:none"><input id="msgInput" placeholder="Digite uma mensagem..." style="flex:1;padding:12px 14px;border-radius:10px;border:1px solid #e2e8f0;background:#ffffff;color:#111827"><button type="submit" style="padding:12px 18px;border-radius:10px;border:none;background:#6366f1;color:white;font-weight:700">Enviar</button></form>
+<audio id="notifSound" preload="auto"></audio>
+<form id="msgForm" style="padding:14px;background:white;border-top:1px solid #e2e8f0;display:flex;gap:10px;align-items:center"><button type="button" id="attachBtn" style="width:44px;height:44px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;cursor:pointer;font-size:20px;flex-shrink:0">📎</button><input type="file" id="fileInput" style="display:none"><input id="msgInput" placeholder="Digite uma mensagem..." style="flex:1;padding:12px 14px;border-radius:10px;border:1px solid #e2e8f0;background:#ffffff;color:#111827"><button type="submit" style="padding:12px 18px;border-radius:10px;border:none;background:#6366f1;color:white;font-weight:700">Enviar</button></form>
 </div>
 </div>
 
@@ -138,12 +136,9 @@ async function initFirebase(){
   document.getElementById('status').textContent='Firebase pronto';
   document.getElementById('status').style.color='#22c55e';
   setupAuth();
- }catch(e){
-  document.getElementById('status').textContent='Baixe e abra local: '+e.message;
-  document.getElementById('status').style.color='#f59e0b';
- }
+ }catch(e){ document.getElementById('status').textContent='Erro: '+e.message; }
 }
-let currentUser=null, currentChannel='geral', currentChannelType='channel', listeners={}, messagesCache={}, channelType='public', allChannelsCache={};
+let currentUser=null, currentChannel='geral', currentChannelType='channel', listeners={}, messagesCache={}, channelType='public', allChannelsCache={}, unreadCounts={}, globalNotifiers={}, initialLoadDone=false, notifPermission=false, notifSoundEnabled=true, originalTitle=document.title;
 function showErr(id,msg){const el=document.getElementById(id);el.style.display='block';el.textContent=msg}
 function hideErr(id){document.getElementById(id).style.display='none'}
 function setupAuth(){
@@ -211,18 +206,16 @@ function initChat(){
   window.allUsers=list;
   renderUsers();
   document.getElementById('conn').textContent=list.length+' usuarios - '+list.filter(u=>u.online).length+' online';
-  // atualiza checklist se modal aberto
   if(document.getElementById('createChannelModal').style.display==='flex') renderMembersChecklist();
  });
  firebase.database().ref('.info/connected').on('value',s=>{
    const sub=document.getElementById('chatSub');
-   if(!sub) return;
    if(!s.val()){ sub.textContent='Desconectado'; sub.style.color='#ef4444'; return; }
    if(currentChannelType==='dm'){ sub.textContent='💬 Conversa privada'; sub.style.color='#6366f1'; }
    else {
      const ch = allChannelsCache[currentChannel];
-     if(ch && ch.members){ sub.textContent='🔒 Canal privado - '+Object.keys(ch.members).length+' membros'; sub.style.color='#f59e0b'; }
-     else sub.textContent='● Canal - todos veem'; 
+     if(ch && ch.members){ sub.textContent='🔒 Privado - '+Object.keys(ch.members).length+' membros'; sub.style.color='#f59e0b'; }
+     else sub.textContent='● Canal público';
    }
  });
  selectChannel('geral','# geral','channel');
@@ -231,139 +224,32 @@ function initChat(){
  document.getElementById('msgForm').onsubmit=(e)=>{e.preventDefault();sendMsg()};
  document.getElementById('attachBtn').onclick=()=>document.getElementById('fileInput').click();
  document.getElementById('fileInput').onchange=(e)=>{const f=e.target.files[0]; if(f) showFilePreview(f); e.target.value='';};
+ window.addEventListener('focus', ()=>{ document.title=originalTitle; if(currentChannel) clearUnread(currentChannel); });
 }
 
 function renderChannelList(channelsObj){
  const cl=document.getElementById('chanList'); cl.innerHTML='';
  let list = Object.values(channelsObj);
- // filtra: se canal tem members, só mostra se currentUser está nos members ou é criador
  list = list.filter(ch=>{
    if(ch.id==='geral') return true;
-   if(!ch.members) return true; // publico
+   if(!ch.members) return true;
    return ch.members[currentUser.id] || ch.createdBy===currentUser.id;
  });
  list = list.sort((a,b)=> (a.id==='geral'?-1:b.id==='geral'?1: a.label.localeCompare(b.label)));
  list.forEach(ch=>{
   const isActive = ch.id===currentChannel && currentChannelType==='channel';
+  const unread = unreadCounts[ch.id]||0;
   const d=document.createElement('div');
-  d.style.cssText='padding:8px 10px;border-radius:8px;cursor:pointer;color:#9ca3af;display:flex;justify-content:space-between;align-items:center';
+  d.style.cssText='padding:8px 10px;border-radius:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;';
   d.style.background=isActive?'#1f2937':''; d.style.color=isActive?'white':'#9ca3af';
+  if(unread>0 && !isActive){ d.style.background='#1f2937'; d.style.border='1px solid #6366f133'; }
   const canDelete = ch.id!=='geral';
   const isPrivate = ch.members ? '🔒 ' : '';
-  d.innerHTML=`<span style="flex:1" onclick="selectChannel('${ch.id}','${ch.label}','channel')">${isPrivate}${ch.label}${ch.members?' ('+Object.keys(ch.members).length+')':''}</span><div style="display:flex;gap:4px"><button onclick="openManageMembers('${ch.id}')" title="Gerenciar membros" style="width:20px;height:20px;border-radius:4px;border:none;background:transparent;color:#6366f1;cursor:pointer;font-size:12px">👥</button>${canDelete?`<button onclick="deleteChannel('${ch.id}','${ch.label}')" title="Excluir canal" style="width:20px;height:20px;border-radius:4px;border:none;background:transparent;color:#ef4444;cursor:pointer;font-size:12px">🗑️</button>`:''}</div>`;
-  d.onclick=(e)=>{ if(e.target.tagName!=='BUTTON') selectChannel(ch.id, ch.label, 'channel'); };
+  const badge = unread>0 ? `<span class="badge badge-channel">${unread>99?'99+':unread}</span>` : '';
+  d.innerHTML=`<span style="flex:1;display:flex;align-items:center;gap:6px" onclick="selectChannel('${ch.id}','${ch.label}','channel')">${isPrivate}${ch.label} ${badge}</span><div style="display:flex;gap:4px"><button onclick="openManageMembers('${ch.id}')" title="Membros" style="width:20px;height:20px;border-radius:4px;border:none;background:transparent;color:#6366f1;cursor:pointer;font-size:12px">👥</button>${canDelete?`<button onclick="deleteChannel('${ch.id}','${ch.label}')" style="width:20px;height:20px;border-radius:4px;border:none;background:transparent;color:#ef4444;cursor:pointer;font-size:12px">🗑️</button>`:''}</div>`;
   cl.appendChild(d);
  });
-}
-
-function setChannelType(t){
- channelType=t;
- document.getElementById('typePublic').style.borderColor=t==='public'?'#6366f1':'#334155';
- document.getElementById('typePublic').style.background=t==='public'?'#6366f122':'#0f172a';
- document.getElementById('typePublic').style.color=t==='public'?'white':'#94a3b8';
- document.getElementById('typePrivate').style.borderColor=t==='private'?'#6366f1':'#334155';
- document.getElementById('typePrivate').style.background=t==='private'?'#6366f122':'#0f172a';
- document.getElementById('typePrivate').style.color=t==='private'?'white':'#94a3b8';
- document.getElementById('membersSection').style.display=t==='private'?'block':'none';
- if(t==='private') renderMembersChecklist();
-}
-
-function renderMembersChecklist(){
- const cont=document.getElementById('membersChecklist');
- if(!cont || !window.allUsers) return;
- cont.innerHTML='';
- window.allUsers.filter(u=>u.id!==currentUser.id).forEach(u=>{
-  const nome=u.nome||u.email.split('@')[0];
-  const div=document.createElement('div'); div.style.cssText='display:flex;align-items:center;gap:8px;padding:6px;border-radius:6px;cursor:pointer';
-  div.innerHTML=`<input type="checkbox" value="${u.id}" id="chk_${u.id}" style="width:auto"><label for="chk_${u.id}" style="margin:0;color:#d1d5db;cursor:pointer;flex:1">${nome} - ${u.cargo||u.email}</label>`;
-  cont.appendChild(div);
- });
-}
-
-function openCreateChannelModal(){
- document.getElementById('newChannelName').value='';
- document.getElementById('createChanErr').style.display='none';
- channelType='public'; setChannelType('public');
- document.getElementById('createChannelModal').style.display='flex';
- document.getElementById('newChannelName').focus();
-}
-function closeCreateChannelModal(){ document.getElementById('createChannelModal').style.display='none'; }
-function createChannel(){
- const raw=document.getElementById('newChannelName').value.trim().toLowerCase();
- const errEl=document.getElementById('createChanErr');
- errEl.style.display='none';
- if(!raw || raw.length<2){ errEl.textContent='Nome muito curto'; errEl.style.display='block'; return; }
- let id = raw.replace(/[^a-z0-9_-]/g, '-').replace(/-+/g,'-').replace(/^[-_]+|[-_]+$/g,'');
- if(!id || id==='geral' || id==='dms'){ errEl.textContent='Nome reservado/invalido'; errEl.style.display='block'; return; }
- firebase.database().ref('channel_list/'+id).once('value').then(snap=>{
-   if(snap.exists()){ errEl.textContent='Canal #'+id+' já existe'; errEl.style.display='block'; return; }
-   const label = '# '+id;
-   let data = {id:id, label:label, createdBy: currentUser.id, createdAt: Date.now(), isPublic: channelType==='public'};
-   if(channelType==='private'){
-     const checks = document.querySelectorAll('#membersChecklist input:checked');
-     let members = {};
-     members[currentUser.id]=true;
-     checks.forEach(c=>{ members[c.value]=true; });
-     data.members = members;
-   }
-   firebase.database().ref('channel_list/'+id).set(data).then(()=>{
-     closeCreateChannelModal();
-     selectChannel(id, label, 'channel');
-   });
- });
-}
-function deleteChannel(id, label){
- if(id==='geral'){ alert('O canal #geral não pode ser excluído'); return; }
- if(!confirm('Excluir o canal '+label+'? Todas as mensagens serão apagadas!')) return;
- firebase.database().ref('channel_list/'+id).remove();
- firebase.database().ref('channels/'+id).remove();
- if(currentChannel===id) selectChannel('geral','# geral','channel');
-}
-
-let editingChannelId=null;
-function openManageMembers(chanId=null){
- editingChannelId = chanId || currentChannel;
- if(!editingChannelId || currentChannelType==='dm'){ alert('Selecione um canal primeiro'); return; }
- const ch = allChannelsCache[editingChannelId];
- if(!ch){ alert('Canal não encontrado'); return; }
- document.getElementById('manageTitle').textContent='Membros de '+ch.label;
- document.getElementById('manageMembersModal').style.display='flex';
- renderManageChecklist(ch);
-}
-function closeManageMembers(){ document.getElementById('manageMembersModal').style.display='none'; editingChannelId=null; }
-function renderManageChecklist(ch){
- const cont=document.getElementById('manageChecklist');
- cont.innerHTML='';
- const members = ch.members || null;
- // se publico, mostra todos marcados mas permite transformar em privado
- const allUsers = window.allUsers || [];
- // adiciona currentUser também
- const list = [{id:currentUser.id, nome:currentUser.nome+' (você)', cargo:''}, ...allUsers.filter(u=>u.id!==currentUser.id)];
- list.forEach(u=>{
-   const nome=u.nome||u.email;
-   const isMember = !members || members[u.id] || u.id===currentUser.id;
-   const isOwner = ch.createdBy===u.id;
-   const div=document.createElement('div'); div.style.cssText='display:flex;align-items:center;gap:8px;padding:6px;border-radius:6px';
-   div.innerHTML=`<input type="checkbox" value="${u.id}" id="mchk_${u.id}" ${isMember?'checked':''} style="width:auto" ${u.id===currentUser.id?'disabled':''}><label for="mchk_${u.id}" style="margin:0;color:#d1d5db;flex:1">${nome} ${isOwner?'(criador)':''}</label>`;
-   cont.appendChild(div);
- });
-}
-function saveMembers(){
- if(!editingChannelId) return;
- const checks = document.querySelectorAll('#manageChecklist input:checked');
- let members = {};
- checks.forEach(c=>{ members[c.value]=true; });
- members[currentUser.id]=true; // garante criador
- if(Object.keys(members).length===1 && Object.keys(allChannelsCache).length>0){
-   // se só 1 pessoa, pergunta se quer tornar público
-   if(confirm('Deixar o canal público (todos veem)? Clique Cancelar para manter privado só com você.')){
-     firebase.database().ref('channel_list/'+editingChannelId+'/members').remove();
-     closeManageMembers();
-     return;
-   }
- }
- firebase.database().ref('channel_list/'+editingChannelId+'/members').set(members);
- closeManageMembers();
+ updateTotalUnread();
 }
 
 function renderUsers(filter=''){
@@ -373,51 +259,135 @@ function renderUsers(filter=''){
  if(list.length===0){cont.innerHTML='<div style=color:#6b7280;font-size:13px;padding:8px>Nenhum usuario.</div>';return}
  cont.innerHTML='';
  list.sort((a,b)=>(b.online?1:0)-(a.online?1:0)).forEach(u=>{
-  const nome=u.nome|| (u.email?u.email.split('@')[0]:'Usuario'); const cargo=u.cargo||u.email||'Sem cargo';
-  const d=document.createElement('div');d.style.cssText='display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;cursor:pointer;color:#d1d5db';
-  d.onmouseenter=()=>d.style.background='#1f2937';d.onmouseleave=()=>d.style.background='transparent';
-  d.innerHTML=`<div style="width:32px;height:32px;border-radius:50%;background:${u.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;font-size:12px">${nome[0].toUpperCase()}</div><div style="flex:1"><div style="font-size:13px;font-weight:600">${nome}</div><div style="font-size:11px;color:#6b7280">${cargo} - ${u.online?'online':'offline'}</div></div><div style="width:8px;height:8px;border-radius:50%;background:${u.online?'#22c55e':'#4b5563'}"></div>`;
+  const nome=u.nome|| (u.email?u.email.split('@')[0]:'Usuario'); const cargo=u.cargo||u.email||'';
+  const dmId = [currentUser.id, u.id].sort().join('_');
+  const unread = unreadCounts[dmId]||0;
+  const d=document.createElement('div');d.style.cssText='display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;cursor:pointer;color:#d1d5db;position:relative';
+  if(unread>0){ d.style.background='#1f2937'; d.style.border='1px solid #ef444433'; }
+  d.onmouseenter=()=>{ if(unread===0) d.style.background='#1f2937'; }; d.onmouseleave=()=>{ if(unread===0) d.style.background='transparent'; };
+  d.innerHTML=`<div style="width:32px;height:32px;border-radius:50%;background:${u.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;font-size:12px">${nome[0].toUpperCase()}</div><div style="flex:1"><div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px">${nome} ${unread>0?`<span class="badge badge-dm">${unread>99?'99+':unread}</span>`:''}</div><div style="font-size:11px;color:#6b7280">${cargo} - ${u.online?'online':'offline'}</div></div><div style="width:8px;height:8px;border-radius:50%;background:${u.online?'#22c55e':'#4b5563'}"></div>`;
   d.onclick=()=>selectUser(u);
   cont.appendChild(d);
  });
+ updateTotalUnread();
 }
+
+function updateTotalUnread(){
+ const total=Object.values(unreadCounts).reduce((a,b)=>a+b,0);
+ const el=document.getElementById('totalUnread');
+ if(total>0){ el.textContent=total>99?'99+':total; el.style.display='inline-flex'; document.title='('+total+') '+originalTitle; }
+ else { el.style.display='none'; document.title=originalTitle; }
+}
+
+function setChannelType(t){
+ channelType=t;
+ document.getElementById('typePublic').style.borderColor=t==='public'?'#6366f1':'#334155';
+ document.getElementById('typePublic').style.background=t==='public'?'#6366f122':'#0f172a';
+ document.getElementById('typePrivate').style.borderColor=t==='private'?'#6366f1':'#334155';
+ document.getElementById('typePrivate').style.background=t==='private'?'#6366f122':'#0f172a';
+ document.getElementById('membersSection').style.display=t==='private'?'block':'none';
+ if(t==='private') renderMembersChecklist();
+}
+function renderMembersChecklist(){
+ const cont=document.getElementById('membersChecklist');
+ if(!cont || !window.allUsers) return;
+ cont.innerHTML='';
+ window.allUsers.filter(u=>u.id!==currentUser.id).forEach(u=>{
+  const nome=u.nome||u.email.split('@')[0];
+  const div=document.createElement('div'); div.style.cssText='display:flex;align-items:center;gap:8px;padding:6px;border-radius:6px';
+  div.innerHTML=`<input type="checkbox" value="${u.id}" id="chk_${u.id}" style="width:auto"><label for="chk_${u.id}" style="margin:0;color:#d1d5db;flex:1">${nome} - ${u.cargo||u.email}</label>`;
+  cont.appendChild(div);
+ });
+}
+function openCreateChannelModal(){
+ document.getElementById('newChannelName').value='';
+ document.getElementById('createChanErr').style.display='none';
+ channelType='public'; setChannelType('public');
+ document.getElementById('createChannelModal').style.display='flex';
+}
+function closeCreateChannelModal(){ document.getElementById('createChannelModal').style.display='none'; }
+function createChannel(){
+ const raw=document.getElementById('newChannelName').value.trim().toLowerCase();
+ const errEl=document.getElementById('createChanErr');
+ errEl.style.display='none';
+ if(!raw || raw.length<2){ errEl.textContent='Nome muito curto'; errEl.style.display='block'; return; }
+ let id = raw.replace(/[^a-z0-9_-]/g, '-').replace(/-+/g,'-').replace(/^[-_]+|[-_]+$/g,'');
+ if(!id || id==='geral'){ errEl.textContent='Nome reservado'; errEl.style.display='block'; return; }
+ firebase.database().ref('channel_list/'+id).once('value').then(snap=>{
+   if(snap.exists()){ errEl.textContent='Canal já existe'; errEl.style.display='block'; return; }
+   const label = '# '+id;
+   let data = {id:id, label:label, createdBy: currentUser.id, createdAt: Date.now(), isPublic: channelType==='public'};
+   if(channelType==='private'){
+     const checks = document.querySelectorAll('#membersChecklist input:checked');
+     let members = {}; members[currentUser.id]=true;
+     checks.forEach(c=>{ members[c.value]=true; });
+     data.members = members;
+   }
+   firebase.database().ref('channel_list/'+id).set(data).then(()=>{ closeCreateChannelModal(); selectChannel(id, label, 'channel'); });
+ });
+}
+function deleteChannel(id, label){
+ if(id==='geral'){ alert('Não pode excluir #geral'); return; }
+ if(!confirm('Excluir canal '+label+'?')) return;
+ firebase.database().ref('channel_list/'+id).remove();
+ firebase.database().ref('channels/'+id).remove();
+ if(currentChannel===id) selectChannel('geral','# geral','channel');
+}
+let editingChannelId=null;
+function openManageMembers(chanId=null){
+ editingChannelId = chanId || currentChannel;
+ if(!editingChannelId || currentChannelType==='dm'){ alert('Selecione um canal'); return; }
+ const ch = allChannelsCache[editingChannelId];
+ if(!ch){ alert('Canal não encontrado'); return; }
+ document.getElementById('manageTitle').textContent='Membros de '+ch.label;
+ document.getElementById('manageMembersModal').style.display='flex';
+ const cont=document.getElementById('manageChecklist');
+ cont.innerHTML='';
+ const members = ch.members || null;
+ const list = [{id:currentUser.id, nome:currentUser.nome+' (você)'}, ... (window.allUsers||[]).filter(u=>u.id!==currentUser.id)];
+ list.forEach(u=>{
+   const nome=u.nome||u.email;
+   const isMember = !members || members[u.id] || u.id===currentUser.id;
+   const div=document.createElement('div'); div.style.cssText='display:flex;align-items:center;gap:8px;padding:6px;border-radius:6px';
+   div.innerHTML=`<input type="checkbox" value="${u.id}" id="mchk_${u.id}" ${isMember?'checked':''} style="width:auto" ${u.id===currentUser.id?'disabled':''}><label for="mchk_${u.id}" style="margin:0;color:#d1d5db;flex:1">${nome}</label>`;
+   cont.appendChild(div);
+ });
+}
+function closeManageMembers(){ document.getElementById('manageMembersModal').style.display='none'; editingChannelId=null; }
+function saveMembers(){
+ if(!editingChannelId) return;
+ const checks = document.querySelectorAll('#manageChecklist input:checked');
+ let members = {}; checks.forEach(c=>{ members[c.value]=true; }); members[currentUser.id]=true;
+ if(Object.keys(members).length<=1){
+   if(confirm('Deixar canal público?')){ firebase.database().ref('channel_list/'+editingChannelId+'/members').remove(); closeManageMembers(); return; }
+ }
+ firebase.database().ref('channel_list/'+editingChannelId+'/members').set(members);
+ closeManageMembers();
+}
+
 function selectChannel(id,label,type='channel'){
  if(listeners.msg){ listeners.msg.off('child_added'); listeners.msg.off('child_removed'); }
- currentChannel=id;
- currentChannelType=type;
- messagesCache={};
+ currentChannel=id; currentChannelType=type; messagesCache={};
  document.getElementById('chatTitle').textContent=label;
  const ch = allChannelsCache[id];
  const sub=document.getElementById('chatSub');
- if(type==='dm'){ sub.textContent='💬 Conversa privada - não aparece no #geral'; sub.style.color='#6366f1'; document.getElementById('manageMembersBtn').style.display='none'; }
- else {
-   if(ch && ch.members) { sub.textContent='🔒 Canal privado - '+Object.keys(ch.members).length+' membros'; sub.style.color='#f59e0b'; }
-   else sub.textContent='● Canal público'; 
-   document.getElementById('manageMembersBtn').style.display='block';
- }
+ if(type==='dm'){ sub.textContent='💬 Privada - não aparece no #geral'; sub.style.color='#6366f1'; document.getElementById('manageMembersBtn').style.display='none'; }
+ else { if(ch && ch.members){ sub.textContent='🔒 Privado - '+Object.keys(ch.members).length+' membros'; sub.style.color='#f59e0b'; } else sub.textContent='● Público'; document.getElementById('manageMembersBtn').style.display='block'; }
  document.getElementById('msgs').innerHTML='';
  clearUnread(id);
  let path = type==='dm' ? 'dms/'+id+'/messages' : 'channels/'+id+'/messages';
- // verifica permissão antes de carregar
  if(type==='channel' && ch && ch.members && !ch.members[currentUser.id] && ch.createdBy!==currentUser.id){
-   document.getElementById('msgs').innerHTML='<div style="text-align:center;padding:40px;color:#64748b">🔒 Você não tem acesso a este canal privado</div>';
-   return;
+   document.getElementById('msgs').innerHTML='<div style="text-align:center;padding:40px;color:#64748b">🔒 Sem acesso a este canal privado</div>'; return;
  }
  const ref=firebase.database().ref(path).limitToLast(150);
  listeners.msg=ref;
- ref.on('child_added',snap=>{
-   const m=snap.val(); if(!m) return; messagesCache[snap.key]=m; addMsg(m, snap.key);
- });
- ref.on('child_removed',snap=>{
-   const el=document.getElementById('msg-'+snap.key); if(el) el.remove();
-   delete messagesCache[snap.key];
- });
+ ref.on('child_added',snap=>{ const m=snap.val(); if(!m) return; messagesCache[snap.key]=m; addMsg(m, snap.key); });
+ ref.on('child_removed',snap=>{ const el=document.getElementById('msg-'+snap.key); if(el) el.remove(); delete messagesCache[snap.key]; });
 }
 function selectUser(u){
  const ids=[currentUser.id,u.id].sort(); const dmId=ids.join('_');
- const nome=u.nome||u.email;
- selectChannel(dmId,'💬 '+nome, 'dm');
- document.getElementById('chatTitle').textContent='💬 '+nome+' • '+(u.cargo||'');
+ selectChannel(dmId,'💬 '+ (u.nome||u.email), 'dm');
+ document.getElementById('chatTitle').textContent='💬 '+ (u.nome||u.email);
 }
 function addMsg(m, key){
  if(!m) return;
@@ -432,47 +402,42 @@ function addMsg(m, key){
  if(m.fileUrl){
    const isImage = m.fileType && m.fileType.startsWith('image/');
    if(isImage) content+=`<a href="${m.fileUrl}" target="_blank"><img src="${m.fileUrl}" style="max-width:200px;max-height:200px;border-radius:10px;margin-top:8px;border:1px solid #e2e8f0" loading="lazy"></a><div style="font-size:12px;color:#64748b;margin-top:4px">${m.fileName} • <a href="${m.fileUrl}" target="_blank" download style="color:#6366f1">Baixar</a></div>`;
-   else content+=`<div style="display:flex;align-items:center;gap:10px;background:#f1f5f9;padding:10px;border-radius:10px;margin-top:8px;border:1px solid #e2e8f0"><div style="font-size:24px">📄</div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#111827">${m.fileName||'arquivo'}</div><div style="font-size:11px;color:#64748b">${m.fileType||''}</div></div><a href="${m.fileUrl}" target="_blank" download style="padding:6px 12px;background:#6366f1;color:white;border-radius:8px;text-decoration:none;font-size:12px">Baixar</a></div>`;
+   else content+=`<div style="display:flex;align-items:center;gap:10px;background:#f1f5f9;padding:10px;border-radius:10px;margin-top:8px;border:1px solid #e2e8f0"><div style="font-size:24px">📄</div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#111827">${m.fileName||'arquivo'}</div></div><a href="${m.fileUrl}" target="_blank" download style="padding:6px 12px;background:#6366f1;color:white;border-radius:8px;text-decoration:none;font-size:12px">Baixar</a></div>`;
  }
- const delBtn = isMe ? `<div class="msg-actions"><button class="del-btn" onclick="deleteMsg('${msgKey}')" title="Excluir">🗑️ Excluir</button></div>` : '';
+ const delBtn = isMe ? `<div class="msg-actions"><button class="del-btn" onclick="deleteMsg('${msgKey}')" title="Excluir">🗑️</button></div>` : '';
  wrap.innerHTML=`<div style="width:36px;height:36px;border-radius:50%;background:${m.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;flex-shrink:0">${nome[0].toUpperCase()}</div><div><div style="display:flex;gap:8px;align-items:center"><b style="font-size:14px;color:#111827">${escapeHtml(nome)}</b><span style="font-size:11px;color:#64748b">${m.timestamp?new Date(m.timestamp).toLocaleTimeString():''}</span>${delBtn}</div>${content}</div>`;
  box.appendChild(wrap); box.scrollTop=box.scrollHeight;
+ if(!isMe && initialLoadDone && m.timestamp && Date.now()-m.timestamp<15000 && document.hidden){
+   playNotifSound();
+ }
 }
 let pendingFile=null;
 function showFilePreview(file){
- if(file.size>15*1024*1024){ alert('Arquivo muito grande (max 15MB)'); return; }
+ if(file.size>15*1024*1024){ alert('Arquivo muito grande'); return; }
  pendingFile=file;
  const modal=document.getElementById('filePreviewModal');
  const img=document.getElementById('previewImg');
  const icon=document.getElementById('previewFileIcon');
  const nameEl=document.getElementById('previewFileName');
  const sizeEl=document.getElementById('previewFileSize');
- const caption=document.getElementById('previewCaption');
- caption.value='';
+ document.getElementById('previewCaption').value='';
  if(file.type.startsWith('image/')){
    const reader=new FileReader();
    reader.onload=(e)=>{ img.src=e.target.result; img.style.display='block'; icon.style.display='none'; };
    reader.readAsDataURL(file);
  } else {
-   img.style.display='none';
-   icon.style.display='block';
-   nameEl.textContent=file.name;
-   sizeEl.textContent=(file.size/1024).toFixed(1)+' KB • '+file.type;
+   img.style.display='none'; icon.style.display='block';
+   nameEl.textContent=file.name; sizeEl.textContent=(file.size/1024).toFixed(1)+' KB';
  }
  modal.style.display='flex';
 }
-function cancelFilePreview(){
- pendingFile=null;
- document.getElementById('filePreviewModal').style.display='none';
- document.getElementById('previewCaption').value='';
-}
+function cancelFilePreview(){ pendingFile=null; document.getElementById('filePreviewModal').style.display='none'; }
 function confirmFileSend(){
  if(!pendingFile) return;
  const caption=document.getElementById('previewCaption').value.trim();
  document.getElementById('filePreviewModal').style.display='none';
  uploadFile(pendingFile, caption);
  pendingFile=null;
- document.getElementById('previewCaption').value='';
 }
 function escapeHtml(t){return (t||'').toString().replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function sendMsg(){
@@ -483,7 +448,7 @@ function sendMsg(){
  input.value='';input.focus();
 }
 async function uploadFile(file, captionText=""){
- if(file.size>15*1024*1024) return alert('Arquivo muito grande (max 15MB)');
+ if(file.size>15*1024*1024) return alert('Muito grande');
  const info=document.getElementById('uploadInfo'); const txt=document.getElementById('uploadText'); const bar=document.getElementById('progressBar');
  info.style.display='block'; txt.textContent='Enviando '+file.name+'...'; bar.style.width='15%';
  if(file.size < 3*1024*1024){
@@ -497,17 +462,12 @@ async function uploadFile(file, captionText=""){
        bar.style.width='100%'; setTimeout(()=>info.style.display='none',800);
      }catch(err){ info.style.display='none'; alert('Erro: '+err.message); }
    };
-   reader.readAsDataURL(file);
-   return;
+   reader.readAsDataURL(file); return;
  }
  try{
   const storageRef=firebase.storage().ref('chat_files/'+currentChannel+'/'+Date.now()+'_'+file.name);
   const task=storageRef.put(file);
-  task.on('state_changed', snap=>{
-   const pct=(snap.bytesTransferred/snap.totalBytes*100).toFixed(0); bar.style.width=pct+'%'; txt.textContent='Enviando '+file.name+' - '+pct+'%';
-  }, err=>{
-   info.style.display='none'; alert('Erro Storage: '+err.message);
-  }, async ()=>{
+  task.on('state_changed', snap=>{ const pct=(snap.bytesTransferred/snap.totalBytes*100).toFixed(0); bar.style.width=pct+'%'; txt.textContent='Enviando '+pct+'%'; }, err=>{ info.style.display='none'; alert('Erro: '+err.message); }, async ()=>{
    const url=await task.snapshot.ref.getDownloadURL();
    let path = currentChannelType==='dm' ? 'dms/'+currentChannel+'/messages' : 'channels/'+currentChannel+'/messages';
    const ref=firebase.database().ref(path).push();
@@ -517,46 +477,25 @@ async function uploadFile(file, captionText=""){
  }catch(e){ info.style.display='none'; alert('Erro: '+e.message); }
 }
 function deleteMsg(msgKey){
- if(!confirm('Excluir esta mensagem? Será apagada para todos.')) return;
+ if(!confirm('Excluir esta mensagem?')) return;
  const m=messagesCache[msgKey];
- if(m && m.userId !== currentUser.id){ alert('Só pode excluir suas próprias mensagens'); return; }
+ if(m && m.userId !== currentUser.id){ alert('Só pode excluir suas'); return; }
  let path = currentChannelType==='dm' ? 'dms/'+currentChannel+'/messages/'+msgKey : 'channels/'+currentChannel+'/messages/'+msgKey;
- firebase.database().ref(path).remove().then(()=>{
-   const el=document.getElementById('msg-'+msgKey); if(el) el.remove();
- }).catch(err=>alert('Erro ao excluir: '+err.message));
+ firebase.database().ref(path).remove().then(()=>{ const el=document.getElementById('msg-'+msgKey); if(el) el.remove(); });
 }
-async function doLogout(){
- if(currentUser) await firebase.database().ref('users/'+currentUser.id).update({online:false});
- await firebase.auth().signOut();
- location.reload();
-}
-
-let notifPermission=false, notifSoundEnabled=false, unreadCounts={}, initialLoadDone=false, globalNotifiers={}, originalTitle=document.title;
-let lastNotifiedTimestamp = Date.now();
-
 function toggleNotifications(){
  if(Notification && Notification.permission!=='granted'){
-   Notification.requestPermission().then(p=>{ if(p==='granted'){ notifPermission=true; notifSoundEnabled=true; updateNotifBtn(); showToast('🔔 Notificações ativadas!'); } else { alert('Permita notificações no navegador para receber avisos'); } });
+   Notification.requestPermission().then(p=>{ notifPermission=p==='granted'; notifSoundEnabled=true; updateNotifBtn(); });
  } else {
-   notifSoundEnabled=!notifSoundEnabled;
-   notifPermission=Notification.permission==='granted';
-   updateNotifBtn();
-   if(notifSoundEnabled) playNotifSound();
+   notifSoundEnabled=!notifSoundEnabled; updateNotifBtn(); if(notifSoundEnabled) playNotifSound();
  }
 }
-
 function updateNotifBtn(){
- const btn=document.getElementById('notifBtn');
- if(!btn) return;
- if(notifSoundEnabled){ btn.textContent='🔔 Som ON'; btn.style.color='#22c55e'; btn.style.borderColor='#22c55e'; }
- else { btn.textContent='🔕 Som OFF'; btn.style.color='#64748b'; }
+ const btn=document.getElementById('notifBtn'); if(!btn) return;
+ btn.textContent=notifSoundEnabled?'🔔':'🔕';
 }
-
 function playNotifSound(){
  try{
-   const audio=document.getElementById('notifSound');
-   if(audio){ audio.currentTime=0; audio.play().catch(()=>{}); }
-   // fallback beep via WebAudio
    const ctx=new (window.AudioContext||window.webkitAudioContext)();
    const o=ctx.createOscillator(); const g=ctx.createGain();
    o.type='sine'; o.frequency.value=880; o.connect(g); g.connect(ctx.destination);
@@ -564,62 +503,41 @@ function playNotifSound(){
    o.start(); o.stop(ctx.currentTime+0.3);
  }catch(e){}
 }
-
-function showToast(msg){
- const t=document.createElement('div'); t.textContent=msg; t.style.cssText='position:fixed;bottom:20px;right:20px;background:#111827;color:white;padding:12px 18px;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,0.3);z-index:10000;font-size:14px';
- document.body.appendChild(t); setTimeout(()=>t.remove(),3000);
-}
-
 function showBrowserNotification(title, body, channelId){
  if(!notifPermission || Notification.permission!=='granted') return;
- if(!document.hidden && currentChannel===channelId) return; // não notifica se está vendo
+ if(!document.hidden && currentChannel===channelId) return;
  try{
-   const n=new Notification(title, {body: body, icon:'https://cdn-icons-png.flaticon.com/512/733/733585.png'});
-   n.onclick=()=>{ window.focus(); if(channelId){ 
-     const ch=allChannelsCache[channelId];
-     if(ch) selectChannel(channelId, ch.label, 'channel'); 
-     else {
-       // tenta DM
-       selectChannel(channelId, '#'+channelId, 'channel');
-     }
-   } n.close(); };
+   const n=new Notification(title, {body: body});
+   n.onclick=()=>{ window.focus(); if(channelId){ const ch=allChannelsCache[channelId]; if(ch) selectChannel(channelId, ch.label, 'channel'); else selectChannel(channelId, '#'+channelId, 'channel'); } n.close(); };
    setTimeout(()=>n.close(),6000);
  }catch(e){}
 }
-
 function setupGlobalNotifications(){
- // pede permissão automaticamente
- if(Notification && Notification.permission==='default'){
-   Notification.requestPermission().then(p=>{ notifPermission=p==='granted'; });
- } else if(Notification && Notification.permission==='granted'){ notifPermission=true; }
+ if(Notification && Notification.permission==='default'){ Notification.requestPermission().then(p=>{ notifPermission=p==='granted'; }); }
+ else if(Notification && Notification.permission==='granted') notifPermission=true;
  notifSoundEnabled=true; updateNotifBtn();
- // listener para todos os canais que usuário tem acesso
  firebase.database().ref('channel_list').on('value', snap=>{
    const chans=snap.val()||{};
    Object.keys(chans).forEach(cid=>{
      const ch=chans[cid];
      if(ch.members && !ch.members[currentUser.id] && ch.createdBy!==currentUser.id) return;
-     if(globalNotifiers[cid]) return; // já tem
-     // só notifica mensagens novas (últimos 5 min)
+     if(globalNotifiers[cid]) return;
      const ref=firebase.database().ref('channels/'+cid+'/messages').limitToLast(1);
      globalNotifiers[cid]=ref;
      ref.on('child_added', s=>{
        const m=s.val(); if(!m) return;
        if(m.userId===currentUser.id) return;
        if(!initialLoadDone) return;
-       if(Date.now() - m.timestamp > 10000) return; // ignora antigas
+       if(Date.now() - m.timestamp > 10000) return;
        if(cid===currentChannel && !document.hidden) return;
-       // incrementa unread
        unreadCounts[cid]=(unreadCounts[cid]||0)+1;
-       updateChannelBadges();
+       renderChannelList(allChannelsCache);
        const preview = m.text ? m.text.substring(0,60) : (m.fileName ? '📎 '+m.fileName : 'Nova mensagem');
        showBrowserNotification((ch.label||'#'+cid)+' - '+m.user, preview, cid);
        playNotifSound();
-       flashTitle(m.user+' : '+preview);
      });
    });
  });
- // listener para DMs
  firebase.database().ref('dms').on('child_added', snap=>{
    const dmId=snap.key;
    if(!dmId.includes(currentUser.id)) return;
@@ -633,70 +551,23 @@ function setupGlobalNotifications(){
      if(Date.now() - m.timestamp > 10000) return;
      if(dmId===currentChannel && !document.hidden) return;
      unreadCounts[dmId]=(unreadCounts[dmId]||0)+1;
-     updateChannelBadges();
+     renderUsers();
+     renderChannelList(allChannelsCache);
      const preview = m.text ? m.text.substring(0,60) : '📎 Arquivo';
      showBrowserNotification('💬 '+m.user, preview, dmId);
      playNotifSound();
-     flashTitle('💬 '+m.user+' : '+preview);
    });
  });
  setTimeout(()=>{ initialLoadDone=true; }, 4000);
 }
-
-function updateChannelBadges(){
- // atualiza badges na lista
- Object.keys(unreadCounts).forEach(cid=>{
-   if(unreadCounts[cid]<=0) return;
-   // tenta achar elemento na lista
-   // para canais, id é o próprio; para DM, dmId
-   const badgeId='badge-'+cid;
-   let badge=document.getElementById(badgeId);
-   if(!badge){
-     // cria badge dinamicamente procurando o canal
-     const chanList=document.getElementById('chanList');
-     // não cria se não achar, apenas título
-   }
- });
- // atualiza título com total não lidas
- const total=Object.values(unreadCounts).reduce((a,b)=>a+b,0);
- if(total>0) document.title='('+total+') '+originalTitle;
- else document.title=originalTitle;
-}
-
-function flashTitle(msg){
- if(!document.hidden) return;
- let count=0;
- const interval=setInterval(()=>{
-   document.title = count%2===0 ? '🔔 Nova mensagem!' : originalTitle;
-   count++;
-   if(count>6 || !document.hidden){ clearInterval(interval); document.title=originalTitle; updateChannelBadges(); }
- }, 800);
-}
-
 function clearUnread(channelId){
- if(unreadCounts[channelId]){ delete unreadCounts[channelId]; updateChannelBadges(); }
+ if(unreadCounts[channelId]){ delete unreadCounts[channelId]; renderChannelList(allChannelsCache); renderUsers(); updateTotalUnread(); }
 }
-
-// ao voltar a focar a janela, limpa título
-window.addEventListener('focus', ()=>{ document.title=originalTitle; if(currentChannel) clearUnread(currentChannel); });
-
-// hook em addMsg para notificar também dentro do canal atual se janela oculta
-const originalAddMsg = addMsg;
-addMsg = function(m, key){
- originalAddMsg(m, key);
- if(!m) return;
- if(m.userId===currentUser.id) return;
- if(!initialLoadDone) return;
- if(m.timestamp && Date.now() - m.timestamp > 15000) return; // ignora histórico
- if(document.hidden){
-   const preview = m.text ? m.text.substring(0,60) : (m.fileName ? '📎 '+m.fileName : 'Nova mensagem');
-   playNotifSound();
-   showBrowserNotification(m.user+' em '+ (allChannelsCache[currentChannel]?.label || currentChannel), preview, currentChannel);
-   flashTitle(m.user+' : '+preview);
- }
-};
-
-
+async function doLogout(){
+ if(currentUser) await firebase.database().ref('users/'+currentUser.id).update({online:false});
+ await firebase.auth().signOut();
+ location.reload();
+}
 setTimeout(initFirebase,400);
 </script>
 </body>
