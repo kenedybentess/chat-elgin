@@ -134,15 +134,16 @@ input:focus{border-color:#6366f1}
 </div>
 
 <script>
-// ================= CONFIG =================
+// ================= CONFIG - CHAT ELGIN (REAL) =================
 const firebaseConfig = {
-  apiKey: "SUA_API_KEY",
-  authDomain: "SEU_DOMINIO.firebaseapp.com",
-  databaseURL: "https://SEU_PROJETO.firebaseio.com",
-  projectId: "SEU_PROJETO",
-  storageBucket: "SEU_PROJETO.appspot.com",
-  messagingSenderId: "xxx",
-  appId: "xxx"
+  apiKey: "AIzaSyA7RDUiCwBu8ilgOPyv-HcD_TTpujAoJio",
+  authDomain: "chat-elgin.firebaseapp.com",
+  databaseURL: "https://chat-elgin-default-rtdb.firebaseio.com",
+  projectId: "chat-elgin",
+  storageBucket: "chat-elgin.firebasestorage.app",
+  messagingSenderId: "751356348223",
+  appId: "1:751356348223:web:afa81eb49c715df3de358a",
+  measurementId: "G-F08J4HGX0G"
 };
 
 // LISTA MESTRA - só esses e-mails ganham isAdmin=true no primeiro cadastro
@@ -150,9 +151,6 @@ const ADMIN_EMAILS = [
   'admin@elgin.com.br',
   'ti@elgin.com.br'
 ].map(e=>e.toLowerCase());
-
-// SUPER ADMIN FIXO POR UID - seu usuário principal
-const SUPER_ADMIN_UID = '6ZAYZfefCdg4TVN1oQQSY5jRLUL2';
 
 let currentUser=null;
 let allChannelsCache={};
@@ -177,15 +175,10 @@ function initFirebase(){
           await firebase.database().ref('users/'+user.uid).set({...dbUser, online:true, lastSeen: firebase.database.ServerValue.TIMESTAMP});
         }
         // ATUALIZA isAdmin se estiver na lista mestra (garante privilégio)
-        const shouldBeAdmin = ADMIN_EMAILS.includes((dbUser.email||user.email||'').toLowerCase()) || user.uid === SUPER_ADMIN_UID;
+        const shouldBeAdmin = ADMIN_EMAILS.includes((dbUser.email||user.email||'').toLowerCase());
         if(shouldBeAdmin && !dbUser.isAdmin){
           await firebase.database().ref('users/'+user.uid).update({isAdmin:true});
           dbUser.isAdmin = true;
-        }
-        // FORÇA SUPER ADMIN - mesmo se banco estiver sem flag
-        if(user.uid === SUPER_ADMIN_UID){
-          dbUser.isAdmin = true;
-          await firebase.database().ref('users/'+user.uid).update({isAdmin:true});
         }
         currentUser = { id:user.uid, ...dbUser, email: dbUser.email || user.email };
         document.getElementById('myAvatar').textContent=(currentUser.nome||'U')[0].toUpperCase();
@@ -330,7 +323,7 @@ function loadUsers(){
 
 // ================ ADMIN SEGURO =================
 function isCurrentUserAdmin(){
-  return currentUser && (currentUser.isAdmin === true || currentUser.id === SUPER_ADMIN_UID);
+  return currentUser && currentUser.isAdmin === true;
 }
 function openAdminPanel(){
   if(!isCurrentUserAdmin()){
