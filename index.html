@@ -69,7 +69,7 @@ input:focus{border-color:#6366f1}
 <div style="padding:12px;flex:1;overflow:auto"><div style="font-size:11px;color:#6b7280;letter-spacing:1px;margin-bottom:8px">EQUIPE</div><input id="search" placeholder="Buscar usuários..." style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid #1f2937;background:#0f172a;color:white;margin-bottom:10px"><div id="userList"></div><div id="conn" style="font-size:11px;color:#6b7280;margin-top:10px"></div></div>
 </div>
 <div class="main">
-<div style="height:60px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;padding:0 18px;justify-content:space-between;background:white"><div><b id="chatTitle">#geral</b><div id="chatSub" style="font-size:12px;color:#64748b">Realtime</div></div><div style="display:flex;gap:8px"><button id="manageMembersBtn" onclick="openManageMembers()" style="display:none;padding:6px 12px;border-radius:8px;border:1px solid #e2e8f0;background:white;color:#6366f1;cursor:pointer;font-size:12px">👥 Gerenciar membros</button><button onclick="selectChannel('geral','# geral','channel')" style="padding:6px 12px;border-radius:8px;border:1px solid #e2e8f0;background:white;color:#6366f1;cursor:pointer;font-size:12px">Voltar #geral</button></div></div>
+<div style="height:60px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;padding:0 18px;justify-content:space-between;background:white"><div><b id="chatTitle">#geral</b><div id="chatSub" style="font-size:12px;color:#64748b">Realtime</div></div><div style="display:flex;gap:8px"><button id="notifBtn" onclick="toggleNotifications()" title="Ativar notificações" style="padding:6px 12px;border-radius:8px;border:1px solid #e2e8f0;background:white;color:#64748b;cursor:pointer;font-size:12px">🔔 Ativar som</button><button id="manageMembersBtn" onclick="openManageMembers()" style="display:none;padding:6px 12px;border-radius:8px;border:1px solid #e2e8f0;background:white;color:#6366f1;cursor:pointer;font-size:12px">👥 Gerenciar membros</button><button onclick="selectChannel('geral','# geral','channel')" style="padding:6px 12px;border-radius:8px;border:1px solid #e2e8f0;background:white;color:#6366f1;cursor:pointer;font-size:12px">Voltar #geral</button></div></div>
 <div id="msgs" style="flex:1;overflow:auto;padding:18px;background:#f8fafc"></div>
 
 <div id="filePreviewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;padding:20px">
@@ -115,7 +115,7 @@ input:focus{border-color:#6366f1}
 </div>
 
 <div id="uploadInfo" style="padding:8px 14px;background:#eef2ff;border-top:1px solid #e2e8f0;display:none"><div id="uploadText" style="font-size:13px;color:#4338ca"></div><div style="height:4px;background:#e2e8f0;border-radius:2px;margin-top:6px;overflow:hidden"><div id="progressBar" style="height:100%;background:#6366f1;width:0%;transition:.2s"></div></div></div>
-<form id="msgForm" style="padding:14px;background:white;border-top:1px solid #e2e8f0;display:flex;gap:10px;align-items:center"><button type="button" id="attachBtn" title="Anexar" style="width:44px;height:44px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;cursor:pointer;font-size:20px;flex-shrink:0">📎</button><input type="file" id="fileInput" style="display:none"><input id="msgInput" placeholder="Digite uma mensagem..." style="flex:1;padding:12px 14px;border-radius:10px;border:1px solid #e2e8f0;background:#ffffff;color:#111827"><button type="submit" style="padding:12px 18px;border-radius:10px;border:none;background:#6366f1;color:white;font-weight:700">Enviar</button></form>
+<audio id="notifSound" preload="auto"><source src="data:audio/wav;base64,UklGRlQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YZQAAABkY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kY29kYQ=="></source></audio><form id="msgForm" style="padding:14px;background:white;border-top:1px solid #e2e8f0;display:flex;gap:10px;align-items:center"><button type="button" id="attachBtn" title="Anexar" style="width:44px;height:44px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;cursor:pointer;font-size:20px;flex-shrink:0">📎</button><input type="file" id="fileInput" style="display:none"><input id="msgInput" placeholder="Digite uma mensagem..." style="flex:1;padding:12px 14px;border-radius:10px;border:1px solid #e2e8f0;background:#ffffff;color:#111827"><button type="submit" style="padding:12px 18px;border-radius:10px;border:none;background:#6366f1;color:white;font-weight:700">Enviar</button></form>
 </div>
 </div>
 
@@ -226,6 +226,7 @@ function initChat(){
    }
  });
  selectChannel('geral','# geral','channel');
+ setupGlobalNotifications();
  document.getElementById('search').oninput=(e)=>renderUsers(e.target.value);
  document.getElementById('msgForm').onsubmit=(e)=>{e.preventDefault();sendMsg()};
  document.getElementById('attachBtn').onclick=()=>document.getElementById('fileInput').click();
@@ -395,6 +396,7 @@ function selectChannel(id,label,type='channel'){
    document.getElementById('manageMembersBtn').style.display='block';
  }
  document.getElementById('msgs').innerHTML='';
+ clearUnread(id);
  let path = type==='dm' ? 'dms/'+id+'/messages' : 'channels/'+id+'/messages';
  // verifica permissão antes de carregar
  if(type==='channel' && ch && ch.members && !ch.members[currentUser.id] && ch.createdBy!==currentUser.id){
@@ -528,6 +530,173 @@ async function doLogout(){
  await firebase.auth().signOut();
  location.reload();
 }
+
+let notifPermission=false, notifSoundEnabled=false, unreadCounts={}, initialLoadDone=false, globalNotifiers={}, originalTitle=document.title;
+let lastNotifiedTimestamp = Date.now();
+
+function toggleNotifications(){
+ if(Notification && Notification.permission!=='granted'){
+   Notification.requestPermission().then(p=>{ if(p==='granted'){ notifPermission=true; notifSoundEnabled=true; updateNotifBtn(); showToast('🔔 Notificações ativadas!'); } else { alert('Permita notificações no navegador para receber avisos'); } });
+ } else {
+   notifSoundEnabled=!notifSoundEnabled;
+   notifPermission=Notification.permission==='granted';
+   updateNotifBtn();
+   if(notifSoundEnabled) playNotifSound();
+ }
+}
+
+function updateNotifBtn(){
+ const btn=document.getElementById('notifBtn');
+ if(!btn) return;
+ if(notifSoundEnabled){ btn.textContent='🔔 Som ON'; btn.style.color='#22c55e'; btn.style.borderColor='#22c55e'; }
+ else { btn.textContent='🔕 Som OFF'; btn.style.color='#64748b'; }
+}
+
+function playNotifSound(){
+ try{
+   const audio=document.getElementById('notifSound');
+   if(audio){ audio.currentTime=0; audio.play().catch(()=>{}); }
+   // fallback beep via WebAudio
+   const ctx=new (window.AudioContext||window.webkitAudioContext)();
+   const o=ctx.createOscillator(); const g=ctx.createGain();
+   o.type='sine'; o.frequency.value=880; o.connect(g); g.connect(ctx.destination);
+   g.gain.setValueAtTime(0.3, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime+0.3);
+   o.start(); o.stop(ctx.currentTime+0.3);
+ }catch(e){}
+}
+
+function showToast(msg){
+ const t=document.createElement('div'); t.textContent=msg; t.style.cssText='position:fixed;bottom:20px;right:20px;background:#111827;color:white;padding:12px 18px;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,0.3);z-index:10000;font-size:14px';
+ document.body.appendChild(t); setTimeout(()=>t.remove(),3000);
+}
+
+function showBrowserNotification(title, body, channelId){
+ if(!notifPermission || Notification.permission!=='granted') return;
+ if(!document.hidden && currentChannel===channelId) return; // não notifica se está vendo
+ try{
+   const n=new Notification(title, {body: body, icon:'https://cdn-icons-png.flaticon.com/512/733/733585.png'});
+   n.onclick=()=>{ window.focus(); if(channelId){ 
+     const ch=allChannelsCache[channelId];
+     if(ch) selectChannel(channelId, ch.label, 'channel'); 
+     else {
+       // tenta DM
+       selectChannel(channelId, '#'+channelId, 'channel');
+     }
+   } n.close(); };
+   setTimeout(()=>n.close(),6000);
+ }catch(e){}
+}
+
+function setupGlobalNotifications(){
+ // pede permissão automaticamente
+ if(Notification && Notification.permission==='default'){
+   Notification.requestPermission().then(p=>{ notifPermission=p==='granted'; });
+ } else if(Notification && Notification.permission==='granted'){ notifPermission=true; }
+ notifSoundEnabled=true; updateNotifBtn();
+ // listener para todos os canais que usuário tem acesso
+ firebase.database().ref('channel_list').on('value', snap=>{
+   const chans=snap.val()||{};
+   Object.keys(chans).forEach(cid=>{
+     const ch=chans[cid];
+     if(ch.members && !ch.members[currentUser.id] && ch.createdBy!==currentUser.id) return;
+     if(globalNotifiers[cid]) return; // já tem
+     // só notifica mensagens novas (últimos 5 min)
+     const ref=firebase.database().ref('channels/'+cid+'/messages').limitToLast(1);
+     globalNotifiers[cid]=ref;
+     ref.on('child_added', s=>{
+       const m=s.val(); if(!m) return;
+       if(m.userId===currentUser.id) return;
+       if(!initialLoadDone) return;
+       if(Date.now() - m.timestamp > 10000) return; // ignora antigas
+       if(cid===currentChannel && !document.hidden) return;
+       // incrementa unread
+       unreadCounts[cid]=(unreadCounts[cid]||0)+1;
+       updateChannelBadges();
+       const preview = m.text ? m.text.substring(0,60) : (m.fileName ? '📎 '+m.fileName : 'Nova mensagem');
+       showBrowserNotification((ch.label||'#'+cid)+' - '+m.user, preview, cid);
+       playNotifSound();
+       flashTitle(m.user+' : '+preview);
+     });
+   });
+ });
+ // listener para DMs
+ firebase.database().ref('dms').on('child_added', snap=>{
+   const dmId=snap.key;
+   if(!dmId.includes(currentUser.id)) return;
+   if(globalNotifiers['dm_'+dmId]) return;
+   const ref=firebase.database().ref('dms/'+dmId+'/messages').limitToLast(1);
+   globalNotifiers['dm_'+dmId]=ref;
+   ref.on('child_added', s=>{
+     const m=s.val(); if(!m) return;
+     if(m.userId===currentUser.id) return;
+     if(!initialLoadDone) return;
+     if(Date.now() - m.timestamp > 10000) return;
+     if(dmId===currentChannel && !document.hidden) return;
+     unreadCounts[dmId]=(unreadCounts[dmId]||0)+1;
+     updateChannelBadges();
+     const preview = m.text ? m.text.substring(0,60) : '📎 Arquivo';
+     showBrowserNotification('💬 '+m.user, preview, dmId);
+     playNotifSound();
+     flashTitle('💬 '+m.user+' : '+preview);
+   });
+ });
+ setTimeout(()=>{ initialLoadDone=true; }, 4000);
+}
+
+function updateChannelBadges(){
+ // atualiza badges na lista
+ Object.keys(unreadCounts).forEach(cid=>{
+   if(unreadCounts[cid]<=0) return;
+   // tenta achar elemento na lista
+   // para canais, id é o próprio; para DM, dmId
+   const badgeId='badge-'+cid;
+   let badge=document.getElementById(badgeId);
+   if(!badge){
+     // cria badge dinamicamente procurando o canal
+     const chanList=document.getElementById('chanList');
+     // não cria se não achar, apenas título
+   }
+ });
+ // atualiza título com total não lidas
+ const total=Object.values(unreadCounts).reduce((a,b)=>a+b,0);
+ if(total>0) document.title='('+total+') '+originalTitle;
+ else document.title=originalTitle;
+}
+
+function flashTitle(msg){
+ if(!document.hidden) return;
+ let count=0;
+ const interval=setInterval(()=>{
+   document.title = count%2===0 ? '🔔 Nova mensagem!' : originalTitle;
+   count++;
+   if(count>6 || !document.hidden){ clearInterval(interval); document.title=originalTitle; updateChannelBadges(); }
+ }, 800);
+}
+
+function clearUnread(channelId){
+ if(unreadCounts[channelId]){ delete unreadCounts[channelId]; updateChannelBadges(); }
+}
+
+// ao voltar a focar a janela, limpa título
+window.addEventListener('focus', ()=>{ document.title=originalTitle; if(currentChannel) clearUnread(currentChannel); });
+
+// hook em addMsg para notificar também dentro do canal atual se janela oculta
+const originalAddMsg = addMsg;
+addMsg = function(m, key){
+ originalAddMsg(m, key);
+ if(!m) return;
+ if(m.userId===currentUser.id) return;
+ if(!initialLoadDone) return;
+ if(m.timestamp && Date.now() - m.timestamp > 15000) return; // ignora histórico
+ if(document.hidden){
+   const preview = m.text ? m.text.substring(0,60) : (m.fileName ? '📎 '+m.fileName : 'Nova mensagem');
+   playNotifSound();
+   showBrowserNotification(m.user+' em '+ (allChannelsCache[currentChannel]?.label || currentChannel), preview, currentChannel);
+   flashTitle(m.user+' : '+preview);
+ }
+};
+
+
 setTimeout(initFirebase,400);
 </script>
 </body>
