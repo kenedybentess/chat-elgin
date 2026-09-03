@@ -1,0 +1,53 @@
+{
+  "rules": {
+    "users": {
+      ".read": "auth != null",
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.uid == $uid || auth.token.email == 'kenedybentess@gmail.com' || auth.token.email == 'kenedybentes@gmail.com')"
+      }
+    },
+
+    "channel_list": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+    "channels": {
+      "$channelId": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "messages": {
+          ".read": "auth != null",
+          "$msgId": {
+            ".read": "auth != null",
+            ".write": "auth != null && (!data.exists() || data.child('userId').val() == auth.uid || auth.token.email == 'kenedybentess@gmail.com' || auth.token.email == 'kenedybentes@gmail.com') && newData.child('userId').val() == auth.uid",
+            ".validate": "newData.hasChildren(['id', 'userId', 'timestamp']) && newData.child('text').val().length < 2000"
+          }
+        },
+        "reads": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        }
+      }
+    },
+
+    "dms": {
+      "$dmId": {
+        ".read": "auth != null && $dmId.contains(auth.uid)",
+        ".write": "auth != null && $dmId.contains(auth.uid)",
+        "messages": {
+          "$msgId": {
+            ".read": "auth != null && $dmId.contains(auth.uid)",
+            ".write": "auth != null && newData.child('userId').val() == auth.uid",
+            ".validate": "newData.hasChildren(['id','userId','timestamp'])"
+          }
+        },
+        "reads": {
+          ".read": "auth != null && $dmId.contains(auth.uid)",
+          ".write": "auth != null && $dmId.contains(auth.uid)"
+        }
+      }
+    }
+  }
+}
