@@ -43,10 +43,20 @@ input:focus{border-color:#6366f1}
 .emoji-btn{width:100%;aspect-ratio:1;display:grid;place-items:center;font-size:20px;border:none;background:transparent;cursor:pointer;border-radius:8px;transition:.15s}
 
 .emoji-btn:hover{background:#f1f5f9;transform:scale(1.15)}
-.reaction-bar{display:none;position:absolute;top:-18px;right:10px;background:white;border:1px solid #e2e8f0;border-radius:20px;padding:3px 6px;gap:3px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:5}
+.reaction-bar{display:none;position:absolute;top:-22px;right:0;background:white;border:1px solid #e2e8f0;border-radius:20px;padding:4px 6px;gap:3px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:10;align-items:center}
+.reaction-bar.show{display:flex !important}
 .msg-wrap:hover .reaction-bar{display:flex}
-.reaction-quick{width:28px;height:28px;border-radius:50%;border:none;background:transparent;cursor:pointer;font-size:16px;display:grid;place-items:center;transition:.15s}
-.reaction-quick:hover{background:#f1f5f9;transform:scale(1.2)}
+.msg-wrap.show-reactions .reaction-bar{display:flex !important}
+.reaction-quick{width:32px;height:32px;border-radius:50%;border:none;background:transparent;cursor:pointer;font-size:18px;display:grid;place-items:center;transition:.15s}
+.reaction-quick:hover{background:#f1f5f9;transform:scale(1.25)}
+.reaction-trigger{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;border:1px solid #e2e8f0;background:#f8fafc;cursor:pointer;font-size:10px;margin-left:6px;opacity:0;transition:.2s;vertical-align:middle}
+.msg-wrap:hover .reaction-trigger{opacity:1}
+.reaction-trigger.always{opacity:1}
+@media(max-width:768px){
+  .reaction-trigger{opacity:1 !important}
+  .reaction-bar{top:-30px;right:0}
+}
+
 .reactions-display{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
 .reaction-chip{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:12px;border:1px solid #e2e8f0;background:#f8fafc;font-size:12px;cursor:pointer;transition:.15s}
 .reaction-chip.me{background:#eef2ff;border-color:#6366f1;color:#4338ca}
@@ -756,6 +766,33 @@ function insertEmoji(emoji){
   input.focus();
   // não fecha, deixa aberto para inserir vários - duplo clique fecha
 }
+
+function toggleReactionBar(msgKey){
+  const bar = document.getElementById('bar-'+msgKey);
+  if(!bar) return;
+  const isOpen = bar.classList.contains('show');
+  // fecha todos
+  document.querySelectorAll('.reaction-bar.show').forEach(b=>b.classList.remove('show'));
+  document.querySelectorAll('.msg-wrap.show-reactions').forEach(w=>w.classList.remove('show-reactions'));
+  if(!isOpen){
+    bar.classList.add('show');
+    const wrap = document.getElementById('msg-'+msgKey);
+    if(wrap) wrap.classList.add('show-reactions');
+  }
+}
+function closeReactionBar(msgKey){
+  const bar = document.getElementById('bar-'+msgKey);
+  if(bar) bar.classList.remove('show');
+  const wrap = document.getElementById('msg-'+msgKey);
+  if(wrap) wrap.classList.remove('show-reactions');
+}
+// fecha ao clicar fora
+document.addEventListener('click', (e)=>{
+  if(!e.target.closest('.reaction-bar') && !e.target.closest('.reaction-trigger') && !e.target.closest('.msg-wrap')){
+    document.querySelectorAll('.reaction-bar.show').forEach(b=>b.classList.remove('show'));
+    document.querySelectorAll('.msg-wrap.show-reactions').forEach(w=>w.classList.remove('show-reactions'));
+  }
+});
 
 function closeEmojiPicker(){
   const picker = document.getElementById('emojiPicker');
