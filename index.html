@@ -29,6 +29,15 @@ input:focus{border-color:#6366f1}
 .side{width:320px;background:#111827;border-right:1px solid #1f2937;display:flex;flex-direction:column;transition:transform .3s ease;z-index:20}
 .main{flex:1;display:flex;flex-direction:column;background:#f8fafc;min-width:0}
 #msgInput{background:#ffffff !important;color:#111827 !important;-webkit-text-fill-color:#111827 !important;caret-color:#111827 !important;font-size:16px}
+#pastePreview{display:none;align-items:center;gap:10px;padding:10px 14px;background:#fff;border-top:1px solid #e2e8f0;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0}
+#pastePreview img{width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0}
+#pastePreview .paste-info{flex:1;min-width:0}
+#pastePreview .paste-name{font-size:13px;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pastePreview .paste-hint{font-size:11px;color:#6b7280}
+.msg-input-drag{outline:2px dashed #6366f1 !important;outline-offset:-2px;background:#eef2ff !important}
+.chat-img{max-width:260px;max-height:260px;border-radius:12px;margin-top:8px;border:1px solid #e2e8f0;display:block;cursor:pointer;transition:.2s}
+.chat-img:hover{transform:scale(1.02)}
+
 #msgInput::placeholder{color:#9ca3af !important}
 .msg-wrap{position:relative; display:flex; gap:10px; margin-bottom:18px}
 .msg-wrap:hover .msg-actions{opacity:1}
@@ -118,6 +127,14 @@ input:focus{border-color:#6366f1}
 
 <div id="editUserModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10001;align-items:center;justify-content:center;padding:20px"><div style="background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:400px;width:100%;overflow:hidden"><div style="padding:16px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center"><b style="color:white">✏️ Editar Usuário</b><button onclick="closeEditUser()" style="width:32px;height:32px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#94a3b8;cursor:pointer">✕</button></div><div style="padding:16px"><input type="hidden" id="editUserId"><label style="font-size:12px;color:#94a3b8;margin-bottom:4px;display:block">Nome</label><input id="editUserNome" style="width:100%;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:white;margin-bottom:10px;font-size:16px"><label style="font-size:12px;color:#94a3b8;margin-bottom:4px;display:block">Cargo</label><input id="editUserCargo" style="width:100%;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:white;margin-bottom:10px;font-size:16px"><label style="font-size:12px;color:#94a3b8;margin-bottom:4px;display:block">Email</label><input id="editUserEmail" disabled style="width:100%;padding:10px;border-radius:8px;border:1px solid #334155;background:#1f2937;color:#6b7280;margin-bottom:10px"><label style="font-size:12px;color:#94a3b8;margin-bottom:4px;display:block">Cor avatar</label><input id="editUserColor" type="color" style="width:100%;height:40px;border-radius:8px;border:1px solid #334155;background:#0f172a;cursor:pointer"><div id="editUserErr" style="display:none;background:#7f1d1d33;border:1px solid #7f1d1d;color:#fecaca;padding:8px;border-radius:8px;font-size:12px;margin-top:10px"></div></div><div style="padding:12px 16px;background:#0f172a;display:flex;gap:10px;justify-content:flex-end"><button onclick="closeEditUser()" style="padding:10px 16px;border-radius:10px;border:1px solid #334155;background:transparent;color:#94a3b8;cursor:pointer">Cancelar</button><button onclick="saveEditUser()" style="padding:10px 20px;border-radius:10px;border:none;background:#7c3aed;color:white;cursor:pointer;font-weight:700">Salvar</button></div></div></div>
 
+<div id="pastePreview">
+  <img id="pasteThumb" src="">
+  <div class="paste-info">
+    <div class="paste-name" id="pasteName">imagem-colada.png</div>
+    <div class="paste-hint">📋 Imagem colada - Pressione Enter para enviar ou Esc para remover</div>
+  </div>
+  <button onclick="clearPastedImage()" style="width:32px;height:32px;border-radius:8px;border:1px solid #fee2e2;background:#fef2f2;color:#dc2626;cursor:pointer;font-weight:700">✕</button>
+</div>
 <div id="uploadInfo" style="padding:8px 14px;background:#eef2ff;border-top:1px solid #e2e8f0;display:none"><div id="uploadText" style="font-size:13px;color:#4338ca"></div><div style="height:4px;background:#e2e8f0;border-radius:2px;margin-top:6px;overflow:hidden"><div id="progressBar" style="height:100%;background:#6366f1;width:0%;transition:.2s"></div></div></div>
 <form id="msgForm" style="padding:10px;background:white;border-top:1px solid #e2e8f0;display:flex;gap:8px;align-items:center"><button type="button" id="attachBtn" style="width:44px;height:44px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;cursor:pointer;font-size:20px;flex-shrink:0">📎</button><input type="file" id="fileInput" style="display:none" accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"><input id="msgInput" placeholder="Digite uma mensagem..." style="flex:1;padding:12px 14px;border-radius:10px;border:1px solid #e2e8f0;background:#ffffff;color:#111827;font-size:16px"><button type="submit" style="padding:12px 18px;border-radius:10px;border:none;background:#6366f1;color:white;font-weight:700;min-width:60px">➤</button></form>
 </div>
@@ -259,6 +276,7 @@ function initChat(){
  document.getElementById('search').oninput=(e)=>renderUsers(e.target.value);
  document.getElementById('msgForm').onsubmit=(e)=>{e.preventDefault();sendMsg()};
  document.getElementById('attachBtn').onclick=()=>document.getElementById('fileInput').click();
+  setupPasteAndDrop();
  document.getElementById('fileInput').onchange=(e)=>{const f=e.target.files[0]; if(f) showFilePreview(f); e.target.value='';};
  window.addEventListener('focus', ()=>{ document.title=originalTitle; if(currentChannel){ clearUnread(currentChannel); markAsRead(); } });
  setInterval(()=>{ if(window.allUsers) renderUsers(document.getElementById('search').value); }, 30000);
@@ -457,8 +475,11 @@ function addMsg(m, key){
  let content = '';
  if(m.text) content+=`<div style="margin-top:4px;background:${isMe?'#eef2ff':'white'};border:1px solid #e2e8f0;padding:10px 12px;border-radius:12px;font-size:14px;color:#1e293b;max-width:520px;word-break:break-word">${escapeHtml(m.text)}</div>`;
  if(m.fileUrl){
-   const isImage = m.fileType && m.fileType.startsWith('image/');
-   if(isImage) content+=`<a href="${m.fileUrl}" target="_blank"><img src="${m.fileUrl}" style="max-width:200px;max-height:200px;border-radius:10px;margin-top:8px;border:1px solid #e2e8f0" loading="lazy"></a>`;
+   const isImage = m.fileType && m.fileType.startsWith('image/') || (m.fileUrl && m.fileUrl.startsWith('data:image'));
+   if(isImage) {
+     // se tem texto + imagem, texto vira legenda
+     content+=`<a href="${m.fileUrl}" target="_blank"><img src="${m.fileUrl}" class="chat-img" loading="lazy" title="Clique para ampliar"></a>`;
+   }
    else content+=`<div style="display:flex;align-items:center;gap:10px;background:#f1f5f9;padding:10px;border-radius:10px;margin-top:8px;border:1px solid #e2e8f0"><div style="font-size:24px">📄</div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#111827">${m.fileName||'arquivo'}</div></div><a href="${m.fileUrl}" target="_blank" download style="padding:6px 12px;background:#6366f1;color:white;border-radius:8px;text-decoration:none;font-size:12px">Baixar</a></div>`;
  }
  const canDelete = isMe || isAdmin();
@@ -497,11 +518,138 @@ function confirmFileSend(){
  pendingFile=null;
 }
 function escapeHtml(t){return (t||'').toString().replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+
+// ===== COLAR IMAGEM NA MENSAGEM =====
+let pendingPastedDataUrl = null;
+let pendingPastedName = null;
+
+function handlePastedImageFile(file, dataUrl){
+  if(!file && !dataUrl) return;
+  // limita 4MB para base64 no RTDB (Firebase limita ~10MB por nó, mas vamos ser seguros)
+  if(file && file.size > 4*1024*1024){ alert('Imagem muito grande (máx 4MB para colar). Use o botão 📎 para arquivos maiores.'); return; }
+  pendingPastedDataUrl = dataUrl;
+  pendingPastedName = file ? (file.name || 'imagem-colada.png') : 'imagem-colada.png';
+  if(!pendingPastedName.includes('.')) pendingPastedName += '.png';
+  document.getElementById('pasteThumb').src = dataUrl;
+  document.getElementById('pasteName').textContent = pendingPastedName + (file ? ' ('+(file.size/1024).toFixed(0)+' KB)' : '');
+  document.getElementById('pastePreview').style.display='flex';
+  // foca no input pra já digitar legenda
+  setTimeout(()=>document.getElementById('msgInput').focus(),50);
+}
+
+function clearPastedImage(){
+  pendingPastedDataUrl = null;
+  pendingPastedName = null;
+  document.getElementById('pastePreview').style.display='none';
+  document.getElementById('pasteThumb').src='';
+}
+
+function fileToDataUrl(file, cb){
+  const r = new FileReader();
+  r.onload = e => cb(e.target.result);
+  r.readAsDataURL(file);
+}
+
+function setupPasteAndDrop(){
+  const input = document.getElementById('msgInput');
+  const form = document.getElementById('msgForm');
+  if(!input || !form) return;
+
+  // COLAR (Ctrl+V / Print Screen)
+  input.addEventListener('paste', (e)=>{
+    const clipboard = e.clipboardData || window.clipboardData;
+    if(!clipboard) return;
+    const items = clipboard.items;
+    if(!items) return;
+    for(let i=0;i<items.length;i++){
+      const item = items[i];
+      if(item.kind==='file' && item.type.startsWith('image/')){
+        const file = item.getAsFile();
+        e.preventDefault();
+        fileToDataUrl(file, (dataUrl)=>{
+          handlePastedImageFile(file, dataUrl);
+        });
+        return;
+      }
+    }
+    // também tenta files direto
+    if(clipboard.files && clipboard.files.length>0){
+      const file = clipboard.files[0];
+      if(file.type.startsWith('image/')){
+        e.preventDefault();
+        fileToDataUrl(file, (dataUrl)=> handlePastedImageFile(file, dataUrl));
+      }
+    }
+  });
+
+  // DRAG & DROP na área da mensagem
+  ['dragenter','dragover'].forEach(ev=>{
+    form.addEventListener(ev, (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      input.classList.add('msg-input-drag');
+    });
+  });
+  ['dragleave','drop'].forEach(ev=>{
+    form.addEventListener(ev, (e)=>{
+      if(ev==='dragleave' && e.target!==form) return;
+      if(ev!=='drop'){
+        input.classList.remove('msg-input-drag');
+      }
+    });
+  });
+  form.addEventListener('drop', (e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    input.classList.remove('msg-input-drag');
+    const files = e.dataTransfer.files;
+    if(files && files.length>0){
+      const file = files[0];
+      if(file.type.startsWith('image/')){
+        fileToDataUrl(file, (dataUrl)=> handlePastedImageFile(file, dataUrl));
+      } else {
+        // se for outro arquivo, usa o fluxo normal
+        showFilePreview(file);
+      }
+    }
+  });
+
+  // ESC para limpar imagem colada
+  input.addEventListener('keydown', (e)=>{
+    if(e.key==='Escape' && pendingPastedDataUrl){
+      clearPastedImage();
+    }
+  });
+}
+
 function sendMsg(){
- const input=document.getElementById('msgInput');const text=input.value.trim(); if(!text) return;
+ const input=document.getElementById('msgInput');
+ const text=input.value.trim();
+ // se tem imagem colada, envia mesmo sem texto
+ if(!text && !pendingPastedDataUrl) return;
  let path = currentChannelType==='dm' ? 'dms/'+currentChannel+'/messages' : 'channels/'+currentChannel+'/messages';
  const ref=firebase.database().ref(path).push();
- ref.set({id:ref.key,text,user:currentUser.nome,userId:currentUser.id,cargo:currentUser.cargo,avatarColor:currentUser.avatarColor,timestamp:Date.now()});
+ if(pendingPastedDataUrl){
+   // Envia imagem + texto (legenda)
+   ref.set({
+     id:ref.key,
+     text:text||'',
+     fileUrl:pendingPastedDataUrl,
+     fileName:pendingPastedName||'imagem.png',
+     fileType:'image/png',
+     fileSize: pendingPastedDataUrl.length,
+     isBase64:true,
+     isPasted:true,
+     user:currentUser.nome,
+     userId:currentUser.id,
+     cargo:currentUser.cargo,
+     avatarColor:currentUser.avatarColor,
+     timestamp:Date.now()
+   });
+   clearPastedImage();
+ } else {
+   ref.set({id:ref.key,text,user:currentUser.nome,userId:currentUser.id,cargo:currentUser.cargo,avatarColor:currentUser.avatarColor,timestamp:Date.now()});
+ }
  input.value='';input.focus();
 }
 async function uploadFile(file, captionText=""){
