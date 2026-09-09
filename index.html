@@ -478,7 +478,7 @@ function addMsg(m, key){
    const isImage = m.fileType && m.fileType.startsWith('image/') || (m.fileUrl && m.fileUrl.startsWith('data:image'));
    if(isImage) {
      // se tem texto + imagem, texto vira legenda
-     content+=`<a href="${m.fileUrl}" target="_blank"><img src="${m.fileUrl}" class="chat-img" loading="lazy" title="Clique para ampliar"></a>`;
+     content+=`<img src="${m.fileUrl}" class="chat-img" loading="lazy" title="Clique para ampliar" onclick="openImageLightbox(\'${m.fileUrl}\', \'${(m.fileName||'imagem.png').replace(/'/g,"")}\')">`;
    }
    else content+=`<div style="display:flex;align-items:center;gap:10px;background:#f1f5f9;padding:10px;border-radius:10px;margin-top:8px;border:1px solid #e2e8f0"><div style="font-size:24px">📄</div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#111827">${m.fileName||'arquivo'}</div></div><a href="${m.fileUrl}" target="_blank" download style="padding:6px 12px;background:#6366f1;color:white;border-radius:8px;text-decoration:none;font-size:12px">Baixar</a></div>`;
  }
@@ -517,6 +517,36 @@ function confirmFileSend(){
  uploadFile(pendingFile, caption);
  pendingFile=null;
 }
+
+function openImageLightbox(url, fileName){
+  const modal = document.getElementById('imageLightbox');
+  const img = document.getElementById('lightboxImg');
+  const nameEl = document.getElementById('lightboxName');
+  const dl = document.getElementById('lightboxDownload');
+  if(!modal || !img) return;
+  img.src = url;
+  nameEl.textContent = fileName || 'imagem';
+  dl.href = url;
+  dl.download = fileName || 'imagem.png';
+  // se for base64, download funciona, se for http também
+  modal.style.display='flex';
+  document.body.style.overflow='hidden';
+}
+function closeImageLightbox(){
+  const modal = document.getElementById('imageLightbox');
+  const img = document.getElementById('lightboxImg');
+  if(modal) modal.style.display='none';
+  if(img) img.src='';
+  document.body.style.overflow='';
+}
+// ESC fecha lightbox
+document.addEventListener('keydown', (e)=>{
+  if(e.key==='Escape'){
+    const lb = document.getElementById('imageLightbox');
+    if(lb && lb.style.display!=='none') closeImageLightbox();
+  }
+});
+
 function escapeHtml(t){return (t||'').toString().replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 
 // ===== COLAR IMAGEM NA MENSAGEM =====
@@ -831,5 +861,19 @@ async function doLogout(){
 }
 setTimeout(initFirebase,400);
 </script>
+
+<div id="imageLightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10002;align-items:center;justify-content:center;padding:20px;cursor:zoom-out" onclick="closeImageLightbox()">
+  <div style="position:relative;max-width:95vw;max-height:95vh;display:flex;flex-direction:column;align-items:center" onclick="event.stopPropagation()">
+    <div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:12px;gap:12px">
+      <span id="lightboxName" style="color:white;font-size:13px;opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <a id="lightboxDownload" href="#" download style="padding:8px 14px;background:white;color:#111827;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">⬇️ Baixar</a>
+        <button onclick="closeImageLightbox()" style="width:36px;height:36px;border-radius:8px;border:1px solid #ffffff33;background:#ffffff22;color:white;cursor:pointer;font-size:18px">✕</button>
+      </div>
+    </div>
+    <img id="lightboxImg" src="" style="max-width:90vw;max-height:82vh;object-fit:contain;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5);background:white">
+  </div>
+</div>
+
 </body>
 </html>
