@@ -53,8 +53,24 @@ input:focus{border-color:#6366f1}
 #msgInput::placeholder{color:#9ca3af !important}
 .msg-wrap{position:relative; display:flex; gap:10px; margin-bottom:18px}
 .msg-wrap:hover .msg-actions{opacity:1}
+.msg-wrap:hover .react-btn{opacity:1}
 .msg-actions{opacity:0; transition:.2s; display:flex; gap:6px; margin-left:8px}
 .del-btn{background:#fee2e2;border:1px solid #fecaca;color:#dc2626;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:11px}
+.react-btn{background:#ffffff;border:1px solid #e2e8f0;color:#64748b;padding:4px 8px;border-radius:20px;cursor:pointer;font-size:13px;transition:.15s;opacity:0}
+.react-btn:hover{background:#f8fafc;transform:scale(1.1);border-color:#cbd5e1}
+.reactions-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.reaction-chip{display:inline-flex;align-items:center;gap:4px;background:#ffffff;border:1px solid #e2e8f0;padding:3px 8px;border-radius:16px;font-size:12px;cursor:pointer;transition:.15s;user-select:none;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.reaction-chip:hover{transform:scale(1.05);border-color:#cbd5e1}
+.reaction-chip.me{background:#eef2ff;border-color:#6366f1;color:#4338ca;font-weight:600}
+.reaction-chip .rc-count{font-weight:700;font-size:11px;min-width:12px}
+.quick-picker{position:absolute;bottom:100%;left:50px;background:white;border:1px solid #e2e8f0;border-radius:24px;padding:6px 8px;display:none;gap:4px;box-shadow:0 8px 30px rgba(0,0,0,.15);z-index:50;animation:pop .15s ease}
+.quick-picker.show{display:flex}
+.quick-picker button{width:32px;height:32px;border:none;background:transparent;font-size:20px;cursor:pointer;border-radius:50%;transition:.15s}
+.quick-picker button:hover{background:#f1f5f9;transform:scale(1.25)}
+@keyframes pop{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+.msg-bubble{position:relative}
+.msg-wrap.received .react-btn{order:1}
+
 .badge{background:#ef4444;color:white;font-size:11px;font-weight:700;min-width:20px;height:20px;padding:0 6px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center}
 .badge-channel{background:#6366f1}
 .badge-dm{background:#ef4444}
@@ -448,6 +464,8 @@ function selectChannel(id,label,type='channel'){
  listeners.msg=ref;
  ref.on('child_added',snap=>{ const m=snap.val(); if(!m) return; messagesCache[snap.key]=m; addMsg(m, snap.key); if(m.userId!==currentUser.id){ setTimeout(()=>markAsRead(),500); } });
  ref.on('child_removed',snap=>{ const el=document.getElementById('msg-'+snap.key); if(el) el.remove(); delete messagesCache[snap.key]; });
+ ref.on('child_changed',snap=>{ const m=snap.val(); if(!m) return; messagesCache[snap.key]=m; renderReactions(snap.key, m.reactions); });
+
  const readsRef=firebase.database().ref(basePath+'/reads');
  readsListener=readsRef;
  readsRef.on('value', snap=>{ readsCache=snap.val()||{}; Object.keys(messagesCache).forEach(k=>{ updateReadStatus(k, messagesCache[k]); }); });
@@ -483,31 +501,123 @@ function selectUser(u){
  selectChannel(dmId,'💬 '+ (u.nome||u.email), 'dm');
  document.getElementById('chatTitle').textContent='💬 '+ (u.nome||u.email);
 }
+const REACTION_EMOJIS = ['❤️','😂','😍','👍','👏','🔥','🎉','😮','😢','🙏'];
+
+function getReactionsHtml(reactions){
+ if(!reactions) return '';
+ let html='';
+ for(const emoji in reactions){
+   const users = reactions[emoji];
+   if(!users) continue;
+   const count = typeof users === 'object' ? Object.keys(users).length : (Array.isArray(users)?users.length:0);
+   if(count===0) continue;
+   const isMe = users && users[currentUser.id];
+   html+=`<div class="reaction-chip ${isMe?'me':''}" onclick="toggleReaction('${'__KEY__'}','${emoji}')" title="${count} reação(ões)">${emoji} <span class="rc-count">${count>1?count:''}</span></div>`;
+ }
+ return html ? `<div class="reactions-row" id="reactions-__KEY__">${html}</div>` : `<div class="reactions-row" id="reactions-__KEY__" style="display:none"></div>`;
+}
+
+function buildReactionsHtml(msgKey, reactions){
+ if(!reactions) return '<div class="reactions-row" id="reactions-'+msgKey+'" style="display:none"></div>';
+ let html='';
+ for(const emoji in reactions){
+   const users = reactions[emoji];
+   if(!users) continue;
+   const count = typeof users === 'object' ? Object.keys(users).length : 0;
+   if(count===0) continue;
+   const isMe = users && users[currentUser.id];
+   html+=`<div class="reaction-chip ${isMe?'me':''}" onclick="toggleReaction('${msgKey}','${emoji}')" title="${count} reação(ões)">${emoji} <span class="rc-count">${count>1?count:''}</span></div>`;
+ }
+ return `<div class="reactions-row" id="reactions-${msgKey}" ${html?'':'style="display:none"'}>${html}</div>`;
+}
+
+function renderReactions(msgKey, reactions){
+ const cont = document.getElementById('reactions-'+msgKey);
+ if(!cont) return;
+ if(!reactions || Object.keys(reactions).length===0){
+   cont.style.display='none';
+   cont.innerHTML='';
+   return;
+ }
+ let html='';
+ let hasAny=false;
+ for(const emoji in reactions){
+   const users = reactions[emoji];
+   if(!users) continue;
+   const count = typeof users === 'object' ? Object.keys(users).length : 0;
+   if(count===0) continue;
+   hasAny=true;
+   const isMe = users && users[currentUser.id];
+   html+=`<div class="reaction-chip ${isMe?'me':''}" onclick="toggleReaction('${msgKey}','${emoji}')" title="${count} reação(ões)">${emoji} <span class="rc-count">${count>1?count:''}</span></div>`;
+ }
+ if(!hasAny){ cont.style.display='none'; cont.innerHTML=''; }
+ else { cont.style.display='flex'; cont.innerHTML=html; }
+}
+
 function addMsg(m, key){
  if(!m) return;
  const msgKey = key || m.id;
- if(document.getElementById('msg-'+msgKey)) return;
+ if(document.getElementById('msg-'+msgKey)) {
+   // se já existe, só atualiza reações
+   if(m.reactions) renderReactions(msgKey, m.reactions);
+   return;
+ }
  const box=document.getElementById('msgs');
- const wrap=document.createElement('div'); wrap.id='msg-'+msgKey; wrap.className='msg-wrap';
+ const wrap=document.createElement('div'); wrap.id='msg-'+msgKey; wrap.className='msg-wrap'+(m.userId!==currentUser.id?' received':'');
  const isMe=m.userId===currentUser.id;
  const nome=m.user||m.nome||'Usuario';
  let content = '';
- if(m.text) content+=`<div style="margin-top:4px;background:${isMe?'#eef2ff':'white'};border:1px solid #e2e8f0;padding:10px 12px;border-radius:12px;font-size:14px;color:#1e293b;max-width:520px;word-break:break-word">${escapeHtml(m.text)}</div>`;
+ if(m.text) content+=`<div class="msg-bubble" style="margin-top:4px;background:${isMe?'#eef2ff':'white'};border:1px solid #e2e8f0;padding:10px 12px;border-radius:12px;font-size:14px;color:#1e293b;max-width:520px;word-break:break-word;position:relative">${escapeHtml(m.text)}</div>`;
  if(m.fileUrl){
    const isImage = m.fileType && m.fileType.startsWith('image/') || (m.fileUrl && m.fileUrl.startsWith('data:image'));
    if(isImage) {
-     // se tem texto + imagem, texto vira legenda
      content+=`<img src="${m.fileUrl}" class="chat-img" loading="lazy" title="Clique para ampliar" onclick="openImageLightbox(\'${m.fileUrl}\', \'${(m.fileName||'imagem.png').replace(/'/g,"")}\')">`;
    }
    else content+=`<div style="display:flex;align-items:center;gap:10px;background:#f1f5f9;padding:10px;border-radius:10px;margin-top:8px;border:1px solid #e2e8f0"><div style="font-size:24px">📄</div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#111827">${m.fileName||'arquivo'}</div></div><a href="${m.fileUrl}" target="_blank" download style="padding:6px 12px;background:#6366f1;color:white;border-radius:8px;text-decoration:none;font-size:12px">Baixar</a></div>`;
  }
  const canDelete = isMe || isAdmin();
  const delBtn = canDelete ? `<div class="msg-actions"><button class="del-btn" onclick="deleteMsg('${msgKey}')">🗑️ ${isAdmin()&&!isMe?'Admin':''}</button></div>` : '';
+ const quickPickerHtml = `<div class="quick-picker" id="picker-${msgKey}">${REACTION_EMOJIS.map(e=>`<button onclick="toggleReaction('${msgKey}','${e}');closePicker('${msgKey}')">${e}</button>`).join('')}<button onclick="closePicker('${msgKey}')" style="font-size:12px;width:auto;padding:0 6px;color:#64748b">✕</button></div>`;
+ const reactBtn = `<button class="react-btn" id="react-btn-${msgKey}" onclick="openPicker('${msgKey}')" title="Reagir">😊</button>`;
  const status = getReadStatus(msgKey, m);
  const statusHtml = status && isMe ? `<div id="read-${msgKey}" class="read-status"><span class="${status.cls}">${status.icon} ${status.text}</span></div>` : (isMe ? `<div id="read-${msgKey}" class="read-status"><span class="read-sent">✓ Enviado</span></div>` : '');
- wrap.innerHTML=`<div style="width:36px;height:36px;border-radius:50%;background:${m.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;flex-shrink:0">${nome[0].toUpperCase()}</div><div><div style="display:flex;gap:8px;align-items:center"><b style="font-size:14px;color:#111827">${escapeHtml(nome)}</b><span style="font-size:11px;color:#64748b">${m.timestamp?new Date(m.timestamp).toLocaleTimeString():''}</span>${delBtn}</div>${content}${statusHtml}</div>`;
+ const reactionsHtml = buildReactionsHtml(msgKey, m.reactions);
+ wrap.innerHTML=`<div style="width:36px;height:36px;border-radius:50%;background:${m.avatarColor||'#6366f1'};display:grid;place-items:center;color:white;font-weight:700;flex-shrink:0">${nome[0].toUpperCase()}</div><div style="position:relative;flex:1;min-width:0"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b style="font-size:14px;color:#111827">${escapeHtml(nome)}</b><span style="font-size:11px;color:#64748b">${m.timestamp?new Date(m.timestamp).toLocaleTimeString():''}</span>${reactBtn}${delBtn}${quickPickerHtml}</div>${content}${reactionsHtml}${statusHtml}</div>`;
  box.appendChild(wrap); box.scrollTop=box.scrollHeight;
 }
+function openPicker(msgKey){
+ document.querySelectorAll('.quick-picker.show').forEach(p=>p.classList.remove('show'));
+ const picker=document.getElementById('picker-'+msgKey);
+ if(picker){ picker.classList.add('show'); }
+}
+function closePicker(msgKey){
+ const picker=document.getElementById('picker-'+msgKey);
+ if(picker) picker.classList.remove('show');
+}
+document.addEventListener('click', (e)=>{
+ if(!e.target.closest('.quick-picker') && !e.target.closest('.react-btn')){
+   document.querySelectorAll('.quick-picker.show').forEach(p=>p.classList.remove('show'));
+ }
+});
+
+function toggleReaction(msgKey, emoji){
+ if(!currentUser) return;
+ let basePath = currentChannelType==='dm' ? 'dms/'+currentChannel : 'channels/'+currentChannel;
+ const reactionRef = firebase.database().ref(basePath+'/messages/'+msgKey+'/reactions/'+emoji+'/'+currentUser.id);
+ reactionRef.once('value').then(snap=>{
+   if(snap.exists()){
+     reactionRef.remove();
+   } else {
+     reactionRef.set(true);
+   }
+ });
+ // optimistic UI
+ const cont=document.getElementById('reactions-'+msgKey);
+ if(cont){
+   // vai ser atualizado pelo child_changed
+ }
+}
+
 let pendingFile=null;
 function showFilePreview(file){
  if(file.size>15*1024*1024){ alert('Arquivo muito grande'); return; }
